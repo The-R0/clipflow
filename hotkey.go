@@ -4,6 +4,7 @@ import (
 	"sync"
 	"unsafe"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"golang.org/x/sys/windows"
 )
 
@@ -103,7 +104,7 @@ func (h *HotkeyManager) messageLoop() {
 		}
 
 		if m.Message == WM_HOTKEY && m.WParam == uintptr(h.hotkeyID) {
-			h.app.ShowPanel()
+			runtime.EventsEmit(h.app.ctx, "hotkey:pressed")
 		}
 	}
 }
