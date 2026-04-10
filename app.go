@@ -22,13 +22,14 @@ type ClipItem struct {
 }
 
 type App struct {
-	ctx     context.Context
-	mu      sync.Mutex
-	items   []ClipItem
-	nextID  int
-	ignore  atomic.Bool
-	hotkey  *HotkeyManager
-	clipmon *ClipboardMonitor
+	ctx          context.Context
+	mu           sync.Mutex
+	items        []ClipItem
+	nextID       int
+	ignore       atomic.Bool
+	panelVisible atomic.Bool
+	hotkey       *HotkeyManager
+	clipmon      *ClipboardMonitor
 
 	activationKey string
 }
@@ -46,12 +47,15 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
 	a.hotkey = NewHotkeyManager(a)
-	a.hotkey.Register()
+	a.hotkey.Register() // starts locked OS-thread loop
 
 	a.clipmon = NewClipboardMonitor(a)
 	go a.clipmon.Start()
 
 	SkipTaskbar()
+
+	// Show panel briefly on startup so user knows the app is alive
+	a.ShowPanel()
 }
 
 func (a *App) onBeforeClose(ctx context.Context) bool {
@@ -67,11 +71,23 @@ func (a *App) ShowPanel() {
 	runtime.WindowSetPosition(a.ctx, x, y)
 	runtime.WindowShow(a.ctx)
 	runtime.WindowSetSize(a.ctx, 280, 360)
+	a.panelVisible.Store(true)
+	runtime.EventsEmit(a.ctx, "panel:shown")
 }
 
 func (a *App) HidePanel() {
+	a.panelVisible.Store(false)
+	runtime.EventsEmit(a.ctx, "panel:hidden")
 	runtime.WindowHide(a.ctx)
 	EmptyWorkingSet()
+}
+
+func (a *App) TogglePanel() {
+	if a.panelVisible.Load() {
+		a.HidePanel()
+	} else {
+		a.ShowPanel()
+	}
 }
 
 func (a *App) PasteText(content string) {

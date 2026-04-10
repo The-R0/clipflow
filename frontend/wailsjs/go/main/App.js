@@ -34,6 +34,10 @@ export function ShowPanel() {
   return window['go']['main']['App']['ShowPanel']();
 }
 
+export function TogglePanel() {
+  return window['go']['main']['App']['TogglePanel']();
+}
+
 export function TogglePin(arg1) {
   return window['go']['main']['App']['TogglePin'](arg1);
 }

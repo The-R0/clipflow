@@ -13,7 +13,7 @@ import {
   SavePrompt,
   TogglePin,
 } from '../wailsjs/go/main/App';
-import { EventsOn } from '../wailsjs/runtime/runtime';
+import { EventsOn, WindowSetSize } from '../wailsjs/runtime/runtime';
 
 type ClipItem = {
   id: string;
@@ -53,7 +53,7 @@ const parseJSON = (str: string) => {
 };
 
 export default function App() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [search, setSearch] = useState('');
   const [clipData, setClipData] = useState<ClipItem[]>([]);
   const [activationKey, setActivationKey] = useState('Alt + C');
@@ -83,16 +83,15 @@ export default function App() {
       GetClipData().then(data => setClipData(data as ClipItem[]));
     });
 
-    // Listen for hotkey press from Go backend
-    EventsOn('hotkey:pressed', () => {
-      if (!isOpen) {
-        setIsOpen(true);
-        setSearch('');
-        setTimeout(() => inputRef.current?.focus(), 50);
-      } else {
-        setIsOpen(false);
-        HidePanel();
-      }
+    // Go backend owns show/hide state — no stale closure risk
+    EventsOn('panel:shown', () => {
+      setIsOpen(true);
+      setSearch('');
+      setTimeout(() => inputRef.current?.focus(), 50);
+    });
+
+    EventsOn('panel:hidden', () => {
+      setIsOpen(false);
     });
   }, []);
 
@@ -266,18 +265,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', handlePanelKeyDown);
   }, [isOpen, isRecordingKey, filteredData, listIndex, activeCategory, isCommandMode]);
 
-  // Window blur → hide panel
-  useEffect(() => {
-    const handleBlur = () => {
-      if (isOpen) {
-        setIsOpen(false);
-        setPasteQueue([]);
-        HidePanel();
-      }
-    };
-    window.addEventListener('blur', handleBlur);
-    return () => window.removeEventListener('blur', handleBlur);
-  }, [isOpen]);
+  // Panel closes via Esc key or Alt+C toggle (Go backend)
+  // Removed window.blur handler — it conflicts with Wails drag events
 
   const renderContentAwareDetails = (item: ClipItem) => {
     if (item.type === 'CMD' || item.type === 'ACTION') {
@@ -332,12 +321,12 @@ export default function App() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.96, opacity: 0, y: 8 }}
               transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-              className="w-full h-full bg-[#1C1C1C]/95 backdrop-blur-2xl border border-[#333333] flex flex-col overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
-              style={{ '--wails-draggable': 'drag' } as React.CSSProperties}
+              className="w-full h-full bg-[#1C1C1C]/95 backdrop-blur-2xl border border-[#333333] flex flex-col overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
             >
-              {/* Header */}
-              <div className="flex items-center px-3 h-12 border-b border-[#333333] shrink-0 bg-[#1A1A1A]" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+              {/* Header — drag handle for window move */}
+              <div className="flex items-center px-3 h-12 border-b border-[#333333] shrink-0 bg-[#1A1A1A]" style={{ '--wails-draggable': 'drag' } as React.CSSProperties}>
                 <button
+                  style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   className={cn(
                     "p-1.5 rounded-md transition-colors mr-2",
@@ -367,6 +356,7 @@ export default function App() {
                     tabIndex={0}
                     onKeyDown={handleRecordKey}
                     autoFocus
+                    style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
                     className="flex-1 bg-transparent border-none outline-none text-[#00E5FF] text-[13px] font-mono animate-pulse"
                   >
                     Listening... (Esc to cancel)
@@ -374,6 +364,7 @@ export default function App() {
                 ) : (
                   <input
                     ref={inputRef}
+                    style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
                     type="text"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
@@ -512,7 +503,7 @@ export default function App() {
               </div>
 
               {/* Footer */}
-              <div className="h-8 border-t border-[#333333] bg-[#1A1A1A] shrink-0 flex items-center justify-between px-2 text-[10px] text-[#666] font-mono select-none overflow-hidden whitespace-nowrap">
+              <div className="h-8 border-t border-[#333333] bg-[#1A1A1A] shrink-0 flex items-center justify-between px-2 text-[10px] text-[#666] font-mono select-none overflow-hidden whitespace-nowrap relative">
                 <div className="flex items-center gap-1.5">
                   <span className="flex items-center"><kbd className="font-sans border border-[#444] bg-[#222] rounded px-1 py-0.5 mr-1 text-[#aaa]">Tab</kbd>切换</span>
                   <span className="flex items-center"><kbd className="font-sans border border-[#444] bg-[#222] rounded px-1 py-0.5 mr-1 text-[#aaa]">↵</kbd>复制</span>
@@ -520,6 +511,33 @@ export default function App() {
                 </div>
                 <div className="flex items-center pr-3">
                   <span className="flex items-center"><kbd className="font-sans border border-[#444] bg-[#222] rounded px-1 py-0.5 mr-1 text-[#aaa]">&gt;</kbd>指令</span>
+                </div>
+                {/* Resize handle */}
+                <div
+                  className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
+                  style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const startX = e.screenX;
+                    const startY = e.screenY;
+                    const startW = window.outerWidth;
+                    const startH = window.outerHeight;
+                    const onMove = (mv: MouseEvent) => {
+                      const w = Math.max(260, startW + mv.screenX - startX);
+                      const h = Math.max(300, startH + mv.screenY - startY);
+                      WindowSetSize(w, h);
+                    };
+                    const onUp = () => {
+                      window.removeEventListener('mousemove', onMove);
+                      window.removeEventListener('mouseup', onUp);
+                    };
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onUp);
+                  }}
+                >
+                  <svg width="8" height="8" viewBox="0 0 8 8" className="absolute bottom-1 right-1 text-[#444]">
+                    <path d="M7 1L1 7M7 4L4 7M7 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  </svg>
                 </div>
               </div>
             </motion.div>

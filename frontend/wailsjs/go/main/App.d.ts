@@ -18,4 +18,6 @@ export function SavePrompt(arg1:string):Promise<void>;
 
 export function ShowPanel():Promise<void>;
 
+export function TogglePanel():Promise<void>;
+
 export function TogglePin(arg1:string):Promise<void>;
