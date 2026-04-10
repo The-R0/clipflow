@@ -20,6 +20,7 @@ export const CATS = [
   { id: 'link',   label: 'Link'   },
   { id: 'code',   label: 'Code'   },
   { id: 'prompt', label: 'Prompt' },
+  { id: 'pinned', label: 'Pinned' },
 ]
 
 export const TYPE_COLOR: Record<string, string> = {
@@ -80,7 +81,9 @@ export function useClipflow() {
     }
     let items = activeCategory === 'all'
       ? clipData
-      : clipData.filter(i => i.type === activeCategory.toUpperCase())
+      : activeCategory === 'pinned'
+        ? clipData.filter(i => i.pinned)
+        : clipData.filter(i => i.type === activeCategory.toUpperCase())
     if (search.trim()) {
       const q = search.toLowerCase()
       items = items.filter(i =>

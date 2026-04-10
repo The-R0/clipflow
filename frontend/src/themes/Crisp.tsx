@@ -10,20 +10,20 @@ const drag = { '--wails-draggable': 'drag' } as React.CSSProperties
 type Scheme = { bg: string; surface: string; border: string; text: string; muted: string; hover: string }
 
 const DARK: Scheme = {
-  bg:      '#0F0F0F',
-  surface: '#181818',
-  border:  '#272727',
-  text:    '#F0F0F0',
-  muted:   '#6B6B6B',
-  hover:   '#1F1F1F',
+  bg:      '#1A1A1A',
+  surface: '#242424',
+  border:  '#333333',
+  text:    '#D8D8D8',
+  muted:   '#888888',
+  hover:   '#2A2A2A',
 }
 const LIGHT: Scheme = {
-  bg:      '#FAFAFA',
-  surface: '#F0F0F0',
-  border:  '#E2E2E2',
-  text:    '#111111',
-  muted:   '#999999',
-  hover:   '#EBEBEB',
+  bg:      '#F2F2F2',
+  surface: '#E8E8E8',
+  border:  '#D4D4D4',
+  text:    '#2A2A2A',
+  muted:   '#777777',
+  hover:   '#E0E0E0',
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -112,7 +112,7 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
            style={{ borderBottom: `1px solid ${c.border}`, ...nd }}>
         {CATS.map(cat => (
           <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-            className="px-3 h-full text-[12px] relative transition-colors"
+            className="px-2 h-full text-[11px] relative transition-colors"
             style={{ color: activeCategory === cat.id ? c.text : c.muted }}>
             {cat.label}
             {activeCategory === cat.id && (
@@ -137,8 +137,7 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
             const isHovered = hoveredId === item.id
             const dot = TYPE_COLOR[item.type] ?? '#888'
             return (
-              <motion.div key={item.id}
-                layout
+              <div key={item.id}
                 onClick={() => selectItem(item)}
                 onMouseEnter={() => { setHoveredId(item.id); setListIndex(i) }}
                 onMouseLeave={() => setHoveredId(null)}
@@ -148,7 +147,7 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
                   borderBottom: `1px solid ${c.border}`,
                 }}>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: dot }} />
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: dot }} />
                   <span className="text-[13px] truncate font-medium">{item.preview}</span>
                   {item.pinned && (
                     <Star size={10} className="ml-auto shrink-0" style={{ color: '#FBBF24', fill: '#FBBF24' }} />
@@ -160,15 +159,12 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
                   </span>
                 </div>
                 {isHovered && item.details && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mt-2 pl-4 text-[11px] whitespace-pre-wrap line-clamp-4 leading-relaxed"
+                  <div className="mt-2 pl-4 text-[11px] whitespace-pre-wrap line-clamp-4 leading-relaxed"
                     style={{ color: c.muted }}>
                     {item.details}
-                  </motion.div>
+                  </div>
                 )}
-              </motion.div>
+              </div>
             )
           })}
         </AnimatePresence>

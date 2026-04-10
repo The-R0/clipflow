@@ -11,6 +11,7 @@ const CAT_ICONS: { id: string; label: string; shape: React.ReactNode }[] = [
   { id: 'link',   label: 'Link', shape: <svg width="12" height="12" viewBox="0 0 12 12"><path d="M4 6h4M2.5 4.5 A2.5 2.5 0 0 1 4 9H3A3.5 3.5 0 0 0 3 3h1A2.5 2.5 0 0 1 2.5 4.5z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M9.5 7.5 A2.5 2.5 0 0 1 8 3h1A3.5 3.5 0 0 0 9 9H8A2.5 2.5 0 0 1 9.5 7.5z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg> },
   { id: 'code',   label: 'Code', shape: <svg width="12" height="12" viewBox="0 0 12 12"><polyline points="4.5,3 1.5,6 4.5,9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><polyline points="7.5,3 10.5,6 7.5,9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg> },
   { id: 'prompt', label: 'Prompt', shape: <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 7.2,4.5 11,4.5 8,6.8 9.2,10.5 6,8.2 2.8,10.5 4,6.8 1,4.5 4.8,4.5" fill="currentColor" opacity="0.9"/></svg> },
+  { id: 'pinned', label: 'Pinned', shape: <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1 L7.5 4.5 L11 5 L8.5 7.5 L9 11 L6 9.2 L3 11 L3.5 7.5 L1 5 L4.5 4.5 Z" fill="currentColor" opacity="0.7"/></svg> },
 ]
 
 export function MonoTheme({ onSwitch }: { onSwitch: () => void }) {

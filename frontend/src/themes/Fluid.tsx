@@ -10,6 +10,7 @@ const CAT_ICONS = [
   { id: 'link',   label: 'Link',   shape: <svg width="13" height="13" viewBox="0 0 12 12"><circle cx="3.5" cy="6" r="2.2" stroke="currentColor" strokeWidth="1.4" fill="none"/><circle cx="8.5" cy="6" r="2.2" stroke="currentColor" strokeWidth="1.4" fill="none"/><line x1="5.7" y1="6" x2="6.3" y2="6" stroke="currentColor" strokeWidth="1.4"/></svg> },
   { id: 'code',   label: 'Code',   shape: <svg width="13" height="13" viewBox="0 0 12 12"><polyline points="4.5,3 1.5,6 4.5,9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><polyline points="7.5,3 10.5,6 7.5,9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg> },
   { id: 'prompt', label: 'Prompt', shape: <svg width="13" height="13" viewBox="0 0 12 12"><polygon points="6,1 7.2,4.5 11,4.5 8,6.8 9.2,10.5 6,8.2 2.8,10.5 4,6.8 1,4.5 4.8,4.5" fill="currentColor"/></svg> },
+  { id: 'pinned', label: 'Pinned', shape: <svg width="13" height="13" viewBox="0 0 12 12"><path d="M6 1 L7.5 4.5 L11 5 L8.5 7.5 L9 11 L6 9.2 L3 11 L3.5 7.5 L1 5 L4.5 4.5 Z" fill="currentColor" opacity="0.7"/></svg> },
 ]
 
 const nd = { '--wails-draggable': 'no-drag' } as React.CSSProperties
@@ -61,7 +62,9 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
       <div className="h-8 flex items-center justify-between px-4 shrink-0" style={drag}>
         <span className="text-[10px] text-white/20 tracking-[0.2em] font-medium">CLIPFLOW</span>
         <button style={nd} onClick={onSwitch}
-          className="w-4 h-4 rounded-full bg-white/10 hover:bg-white/25 transition-colors" />
+          className="px-2 py-0.5 rounded text-[9px] text-white/30 hover:text-white/70 bg-white/5 hover:bg-white/15 transition-all tracking-widest">
+          THEME
+        </button>
       </div>
 
       {/* Search bar */}
@@ -105,12 +108,7 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
             const color = TYPE_COLOR[item.type] ?? '#888'
             const isHovered = hoveredId === item.id
             return (
-              <motion.div key={item.id}
-                layout
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.15 }}
+              <div key={item.id}
                 onClick={() => selectItem(item)}
                 onMouseEnter={() => { setHoveredId(item.id); setListIndex(i) }}
                 onMouseLeave={() => setHoveredId(null)}
@@ -133,14 +131,11 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
                   </span>
                 </div>
                 {isHovered && item.details && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mt-2 ml-[11px] text-[10px] text-white/30 whitespace-pre-wrap line-clamp-3 leading-relaxed">
+                  <div className="mt-2 ml-[11px] text-[10px] text-white/30 whitespace-pre-wrap line-clamp-3 leading-relaxed">
                     {item.details}
-                  </motion.div>
+                  </div>
                 )}
-              </motion.div>
+              </div>
             )
           })}
         </AnimatePresence>
