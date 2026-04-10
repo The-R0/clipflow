@@ -7,6 +7,7 @@ export namespace main {
 	    preview: string;
 	    details: string;
 	    pinned: boolean;
+	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ClipItem(source);
@@ -20,6 +21,7 @@ export namespace main {
 	        this.preview = source["preview"];
 	        this.details = source["details"];
 	        this.pinned = source["pinned"];
+	        this.createdAt = source["createdAt"];
 	    }
 	}
 

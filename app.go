@@ -8,17 +8,19 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type ClipItem struct {
-	ID      string `json:"id"`
-	Type    string `json:"type"`
-	Content string `json:"content"`
-	Preview string `json:"preview"`
-	Details string `json:"details"`
-	Pinned  bool   `json:"pinned"`
+	ID        string `json:"id"`
+	Type      string `json:"type"`
+	Content   string `json:"content"`
+	Preview   string `json:"preview"`
+	Details   string `json:"details"`
+	Pinned    bool   `json:"pinned"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type App struct {
@@ -173,12 +175,13 @@ func (a *App) addItem(content, typ, detailsOverride string) {
 	}
 
 	item := ClipItem{
-		ID:      fmt.Sprintf("%d", a.nextID),
-		Type:    typ,
-		Content: content,
-		Preview: preview,
-		Details: details,
-		Pinned:  false,
+		ID:        fmt.Sprintf("%d", a.nextID),
+		Type:      typ,
+		Content:   content,
+		Preview:   preview,
+		Details:   details,
+		Pinned:    false,
+		CreatedAt: time.Now().Format("15:04"),
 	}
 	a.nextID++
 	a.items = append([]ClipItem{item}, a.items...)
@@ -253,15 +256,15 @@ func (a *App) loadItems() {
 
 func defaultItems() []ClipItem {
 	return []ClipItem{
-		{ID: "1", Type: "CODE", Content: `{"theme": "dark", "layout": "vertical", "sidebar": true}`, Preview: `{"theme": "dark", "layout": "vertical"...`, Details: "JSON Payload"},
-		{ID: "2", Type: "TEXT", Content: "#FF5733", Preview: "#FF5733", Details: "HEX Color Code", Pinned: true},
-		{ID: "3", Type: "LINK", Content: "https://github.com/microsoft/winui", Preview: "https://github.com/microsoft/winui", Details: "Microsoft UI Library (WinUI) is a native UX framework."},
-		{ID: "4", Type: "CODE", Content: "const isCommand = search.startsWith(\">\");", Preview: "const isCommand = search.startsWith(\">\");", Details: "// 万物皆指令\nif (isCommand) {\n  renderCommands();\n}"},
-		{ID: "5", Type: "TEXT", Content: "竖向极简侧边栏设计规范.md", Preview: "竖向极简侧边栏设计规范.md", Details: "# 核心理念\n\n380x560 竖向比例，左侧折叠栏，Lucide 图标统一视觉大小。", Pinned: true},
-		{ID: "100", Type: "PROMPT", Content: "请将以下内容翻译成{{语言}}，保持原文的语气和风格：\n\n{{内容}}", Preview: "翻译成{{语言}}", Details: "翻译 Prompt — 填入目标语言和内容", Pinned: true},
-		{ID: "101", Type: "PROMPT", Content: "请审查以下{{语言}}代码，指出bug、性能问题和改进建议：\n\n```{{语言}}\n{{代码}}\n```", Preview: "代码审查 — {{语言}}", Details: "代码审查 Prompt — 填入语言和代码", Pinned: true},
-		{ID: "102", Type: "PROMPT", Content: "请将以下内容改写为{{格式}}风格，要求{{要求}}：\n\n{{内容}}", Preview: "改写为{{格式}}", Details: "改写 Prompt — 填入格式、要求和内容", Pinned: true},
-		{ID: "103", Type: "PROMPT", Content: "请总结以下内容，提取{{数量}}个关键要点：\n\n{{内容}}", Preview: "总结{{数量}}个要点", Details: "总结 Prompt — 填入数量和内容", Pinned: true},
-		{ID: "104", Type: "PROMPT", Content: "你是一个{{角色}}专家。请帮我{{任务}}：\n\n{{背景}}", Preview: "{{角色}}专家 — {{任务}}", Details: "角色扮演 Prompt — 填入角色、任务和背景", Pinned: true},
+		{ID: "1", Type: "CODE", Content: `{"theme": "dark", "layout": "vertical", "sidebar": true}`, Preview: `{"theme": "dark", "layout": "vertical"...`, Details: "JSON Payload", CreatedAt: "10:30"},
+		{ID: "2", Type: "TEXT", Content: "#FF5733", Preview: "#FF5733", Details: "HEX Color Code", Pinned: true, CreatedAt: "10:15"},
+		{ID: "3", Type: "LINK", Content: "https://github.com/microsoft/winui", Preview: "https://github.com/microsoft/winui", Details: "Microsoft UI Library (WinUI) is a native UX framework.", CreatedAt: "09:45"},
+		{ID: "4", Type: "CODE", Content: "const isCommand = search.startsWith(\">\");", Preview: "const isCommand = search.startsWith(\">\");", Details: "// 万物皆指令\nif (isCommand) {\n  renderCommands();\n}", CreatedAt: "09:20"},
+		{ID: "5", Type: "TEXT", Content: "竖向极简侧边栏设计规范.md", Preview: "竖向极简侧边栏设计规范.md", Details: "# 核心理念\n\n380x560 竖向比例，左侧折叠栏，Lucide 图标统一视觉大小。", Pinned: true, CreatedAt: "08:50"},
+		{ID: "100", Type: "PROMPT", Content: "请将以下内容翻译成{{语言}}，保持原文的语气和风格：\n\n{{内容}}", Preview: "翻译成{{语言}}", Details: "翻译 Prompt — 填入目标语言和内容", Pinned: true, CreatedAt: "08:00"},
+		{ID: "101", Type: "PROMPT", Content: "请审查以下{{语言}}代码，指出bug、性能问题和改进建议：\n\n```{{语言}}\n{{代码}}\n```", Preview: "代码审查 — {{语言}}", Details: "代码审查 Prompt — 填入语言和代码", Pinned: true, CreatedAt: "08:00"},
+		{ID: "102", Type: "PROMPT", Content: "请将以下内容改写为{{格式}}风格，要求{{要求}}：\n\n{{内容}}", Preview: "改写为{{格式}}", Details: "改写 Prompt — 填入格式、要求和内容", Pinned: true, CreatedAt: "08:00"},
+		{ID: "103", Type: "PROMPT", Content: "请总结以下内容，提取{{数量}}个关键要点：\n\n{{内容}}", Preview: "总结{{数量}}个要点", Details: "总结 Prompt — 填入数量和内容", Pinned: true, CreatedAt: "08:00"},
+		{ID: "104", Type: "PROMPT", Content: "你是一个{{角色}}专家。请帮我{{任务}}：\n\n{{背景}}", Preview: "{{角色}}专家 — {{任务}}", Details: "角色扮演 Prompt — 填入角色、任务和背景", Pinned: true, CreatedAt: "08:00"},
 	}
 }

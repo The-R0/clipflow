@@ -10,19 +10,19 @@ const drag = { '--wails-draggable': 'drag' } as React.CSSProperties
 type Scheme = { bg: string; surface: string; border: string; text: string; muted: string; hover: string }
 
 const DARK: Scheme = {
-  bg:      '#1A1A1A',
-  surface: '#242424',
-  border:  '#333333',
-  text:    '#D8D8D8',
+  bg:      '#222222',
+  surface: '#2C2C2C',
+  border:  '#3A3A3A',
+  text:    '#CCCCCC',
   muted:   '#888888',
-  hover:   '#2A2A2A',
+  hover:   '#303030',
 }
 const LIGHT: Scheme = {
-  bg:      '#F2F2F2',
-  surface: '#E8E8E8',
-  border:  '#D4D4D4',
-  text:    '#2A2A2A',
-  muted:   '#777777',
+  bg:      '#ECECEC',
+  surface: '#E2E2E2',
+  border:  '#CCCCCC',
+  text:    '#333333',
+  muted:   '#888888',
   hover:   '#E0E0E0',
 }
 
@@ -149,8 +149,11 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: dot }} />
                   <span className="text-[13px] truncate font-medium">{item.preview}</span>
+                  <span className="ml-auto text-[9px] shrink-0 tabular-nums" style={{ color: c.muted }}>
+                    {item.createdAt}
+                  </span>
                   {item.pinned && (
-                    <Star size={10} className="ml-auto shrink-0" style={{ color: '#FBBF24', fill: '#FBBF24' }} />
+                    <Star size={10} className="shrink-0" style={{ color: '#FBBF24', fill: '#FBBF24' }} />
                   )}
                 </div>
                 <div className="mt-0.5 pl-4 flex items-center gap-1.5">

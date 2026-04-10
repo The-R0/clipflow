@@ -12,6 +12,7 @@ export type ClipItem = {
   preview: string
   details: string
   pinned?: boolean
+  createdAt?: string
 }
 
 export const CATS = [

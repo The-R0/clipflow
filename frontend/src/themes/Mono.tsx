@@ -108,8 +108,11 @@ export function MonoTheme({ onSwitch }: { onSwitch: () => void }) {
                   isActive ? 'border-black/20 text-black/50' : 'border-white/15 text-white/30'
                 }`}>{item.type}</span>
                 <span className="text-[11px] truncate">{item.preview}</span>
+                <span className={`ml-auto text-[8px] shrink-0 tabular-nums ${isActive ? 'text-black/30' : 'text-white/15'}`}>
+                  {item.createdAt}
+                </span>
                 {item.pinned && (
-                  <span className={`ml-auto text-[10px] shrink-0 ${isActive ? 'text-black/40' : 'text-white/30'}`}>★</span>
+                  <span className={`text-[10px] shrink-0 ${isActive ? 'text-black/40' : 'text-white/30'}`}>★</span>
                 )}
               </div>
               {isHovered && item.details && (

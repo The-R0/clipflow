@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { MonoTheme }  from './themes/Mono'
-import { FluidTheme } from './themes/Fluid'
-import { CrispTheme } from './themes/Crisp'
+import { MonoTheme }    from './themes/Mono'
+import { FluidTheme }   from './themes/Fluid'
+import { CrispTheme }   from './themes/Crisp'
+import { ClassicTheme } from './themes/Classic'
 
-type Theme = 'mono' | 'fluid' | 'crisp'
-const CYCLE: Theme[] = ['mono', 'fluid', 'crisp']
+type Theme = 'mono' | 'fluid' | 'crisp' | 'classic'
+const CYCLE: Theme[] = ['mono', 'fluid', 'crisp', 'classic']
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>(
@@ -19,9 +20,10 @@ export default function App() {
 
   return (
     <div className="w-full h-full bg-transparent">
-      {theme === 'mono'  && <MonoTheme  onSwitch={next} />}
-      {theme === 'fluid' && <FluidTheme onSwitch={next} />}
-      {theme === 'crisp' && <CrispTheme onSwitch={next} />}
+      {theme === 'mono'    && <MonoTheme    onSwitch={next} />}
+      {theme === 'fluid'   && <FluidTheme   onSwitch={next} />}
+      {theme === 'crisp'   && <CrispTheme   onSwitch={next} />}
+      {theme === 'classic' && <ClassicTheme onSwitch={next} />}
     </div>
   )
 }

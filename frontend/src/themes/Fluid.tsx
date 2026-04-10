@@ -121,8 +121,9 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-[3px] h-3.5 rounded-full shrink-0" style={{ background: color, opacity: 0.8 }} />
                   <span className="text-[12px] text-white/80 truncate">{item.preview}</span>
+                  <span className="ml-auto text-[8px] text-white/15 shrink-0 tabular-nums">{item.createdAt}</span>
                   {item.pinned && (
-                    <Star size={8} className="ml-auto shrink-0 fill-amber-400 text-amber-400" />
+                    <Star size={8} className="shrink-0 fill-amber-400 text-amber-400" />
                   )}
                 </div>
                 <div className="mt-0.5 ml-[11px] flex items-center gap-1.5">
