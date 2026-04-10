@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sun, Moon, Star } from 'lucide-react'
 import { useClipflow, CATS, TYPE_COLOR } from '../hooks/useClipflow'
+import { PromptFillModal } from '../components/PromptFillModal'
 
 const nd = { '--wails-draggable': 'no-drag' } as React.CSSProperties
 const drag = { '--wails-draggable': 'drag' } as React.CSSProperties
@@ -26,11 +27,12 @@ const LIGHT: Scheme = {
 }
 
 const TYPE_LABEL: Record<string, string> = {
-  TEXT: 'Text', LINK: 'Link', CODE: 'Code', IMG: 'Image', CMD: 'Cmd', ACTION: 'Action',
+  TEXT: 'Text', LINK: 'Link', CODE: 'Code', IMG: 'Image', CMD: 'Cmd', ACTION: 'Action', PROMPT: 'Prompt',
 }
 
 export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('cf-dark') !== 'false')
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const c = isDark ? DARK : LIGHT
 
   const toggleDark = () => {
@@ -41,21 +43,20 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
 
   const {
     isOpen, search, setSearch, activeCategory, setActiveCategory,
-    filteredData, listIndex, setListIndex, expandedIndex, setExpandedIndex,
+    filteredData, listIndex, setListIndex,
     isRecordingKey, setIsRecordingKey, activationKey, selectItem, hide,
     handleRecordKey, TogglePin, inputRef, isCommandMode,
+    promptFill, setPromptFill,
   } = useClipflow()
 
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e: KeyboardEvent) => {
       const len = filteredData.length || 1
-      if (e.key === 'Escape')     { hide(); return }
-      if (e.key === 'ArrowDown')  { e.preventDefault(); setListIndex(p => (p + 1) % len); setExpandedIndex(null) }
-      if (e.key === 'ArrowUp')    { e.preventDefault(); setListIndex(p => (p - 1 + len) % len); setExpandedIndex(null) }
-      if (e.key === 'ArrowRight') { e.preventDefault(); setExpandedIndex(listIndex) }
-      if (e.key === 'ArrowLeft')  { e.preventDefault(); setExpandedIndex(null) }
-      if (e.key === 'Enter')      { e.preventDefault(); filteredData[listIndex] && selectItem(filteredData[listIndex]) }
+      if (e.key === 'Escape')    { hide(); return }
+      if (e.key === 'ArrowDown') { e.preventDefault(); setListIndex(p => (p + 1) % len) }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setListIndex(p => (p - 1 + len) % len) }
+      if (e.key === 'Enter')     { e.preventDefault(); filteredData[listIndex] && selectItem(filteredData[listIndex]) }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -64,7 +65,7 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
   if (!isOpen) return null
 
   return (
-    <div className="w-full h-full flex flex-col"
+    <div className="w-full h-full flex flex-col relative"
          style={{
            fontFamily: "'Segoe UI Variable','Segoe UI',system-ui,sans-serif",
            background: c.bg, color: c.text,
@@ -133,11 +134,14 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
         <AnimatePresence initial={false}>
           {filteredData.map((item, i) => {
             const isActive = i === listIndex
+            const isHovered = hoveredId === item.id
             const dot = TYPE_COLOR[item.type] ?? '#888'
             return (
               <motion.div key={item.id}
                 layout
                 onClick={() => selectItem(item)}
+                onMouseEnter={() => { setHoveredId(item.id); setListIndex(i) }}
+                onMouseLeave={() => setHoveredId(null)}
                 className="px-3 py-2.5 cursor-pointer select-none transition-colors"
                 style={{
                   background: isActive ? c.surface : 'transparent',
@@ -155,7 +159,7 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
                     {TYPE_LABEL[item.type] ?? item.type}
                   </span>
                 </div>
-                {expandedIndex === i && (
+                {isHovered && item.details && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -174,10 +178,23 @@ export function CrispTheme({ onSwitch }: { onSwitch: () => void }) {
       <div className="h-8 px-3 flex items-center justify-between shrink-0"
            style={{ borderTop: `1px solid ${c.border}`, ...nd }}>
         <span className="text-[10px]" style={{ color: c.muted }}>
-          ↵ paste · → expand · esc hide
+          ↵ paste · hover expand · esc hide
         </span>
         <span className="text-[10px]" style={{ color: c.muted }}>{activationKey}</span>
       </div>
+
+      {/* Prompt variable fill modal */}
+      {promptFill && (
+        <PromptFillModal
+          item={promptFill}
+          onDone={() => setPromptFill(null)}
+          accentColor="#E879F9"
+          bgColor={c.bg}
+          textColor={c.text}
+          mutedColor={c.muted}
+          borderColor={c.border}
+        />
+      )}
     </div>
   )
 }

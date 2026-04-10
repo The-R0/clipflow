@@ -7,7 +7,7 @@ import {
 
 export type ClipItem = {
   id: string
-  type: 'LINK' | 'CODE' | 'TEXT' | 'IMG' | 'CMD' | 'ACTION'
+  type: 'LINK' | 'CODE' | 'TEXT' | 'IMG' | 'CMD' | 'ACTION' | 'PROMPT'
   content: string
   preview: string
   details: string
@@ -15,15 +15,27 @@ export type ClipItem = {
 }
 
 export const CATS = [
-  { id: 'all',  label: 'All'  },
-  { id: 'text', label: 'Text' },
-  { id: 'link', label: 'Link' },
-  { id: 'code', label: 'Code' },
+  { id: 'all',    label: 'All'    },
+  { id: 'text',   label: 'Text'   },
+  { id: 'link',   label: 'Link'   },
+  { id: 'code',   label: 'Code'   },
+  { id: 'prompt', label: 'Prompt' },
 ]
 
 export const TYPE_COLOR: Record<string, string> = {
   TEXT: '#4ADE80', LINK: '#38BDF8', CODE: '#C084FC',
   IMG:  '#FB923C', CMD:  '#22D3EE', ACTION: '#FBBF24',
+  PROMPT: '#E879F9',
+}
+
+export function extractVars(template: string): string[] {
+  const matches = template.match(/\{\{(.*?)\}\}/g)
+  if (!matches) return []
+  return [...new Set(matches.map(m => m.slice(2, -2)))]
+}
+
+export function fillVars(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{\{(.*?)\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`)
 }
 
 export function useClipflow() {
@@ -36,6 +48,7 @@ export function useClipflow() {
   const [expandedIndex,  setExpandedIndex]  = useState<number | null>(null)
   const [pasteQueue,     setPasteQueue]     = useState<string[]>([])
   const [isRecordingKey, setIsRecordingKey] = useState(false)
+  const [promptFill, setPromptFill] = useState<ClipItem | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const isCommandMode = search.startsWith('>')
@@ -80,6 +93,10 @@ export function useClipflow() {
   const selectItem = useCallback((item: ClipItem) => {
     if (item.id === 'cmd-clear') { ClearUnpinned(); setSearch(''); return }
     if (item.id === 'cmd-set')   { setIsRecordingKey(true); return }
+    if (item.type === 'PROMPT' && extractVars(item.content).length > 0) {
+      setPromptFill(item)
+      return
+    }
     PasteText(item.content)
     HidePanel()
     setIsOpen(false)
@@ -115,6 +132,7 @@ export function useClipflow() {
     expandedIndex, setExpandedIndex,
     pasteQueue, setPasteQueue,
     isRecordingKey, setIsRecordingKey,
+    promptFill, setPromptFill,
     inputRef,
     isCommandMode,
     filteredData,

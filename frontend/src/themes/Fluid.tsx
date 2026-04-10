@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star } from 'lucide-react'
 import { useClipflow, TYPE_COLOR } from '../hooks/useClipflow'
+import { PromptFillModal } from '../components/PromptFillModal'
 
 const CAT_ICONS = [
   { id: 'all',    label: 'All',    shape: <svg width="13" height="13" viewBox="0 0 12 12"><circle cx="3" cy="3" r="1.4" fill="currentColor"/><circle cx="9" cy="3" r="1.4" fill="currentColor"/><circle cx="3" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/></svg> },
@@ -21,6 +22,7 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
     filteredData, listIndex, setListIndex,
     isRecordingKey, activationKey, selectItem, hide,
     handleRecordKey, TogglePin, inputRef, isCommandMode,
+    promptFill, setPromptFill,
   } = useClipflow()
 
   useEffect(() => {
@@ -150,9 +152,22 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
       {/* Footer */}
       <div className="h-8 border-t px-4 flex items-center justify-between shrink-0 text-[9px] text-white/18"
            style={{ borderColor: 'rgba(255,255,255,0.05)', ...nd }}>
-        <span>↵ paste · esc hide</span>
+        <span>↵ paste · hover expand · esc hide</span>
         <span>{activationKey}</span>
       </div>
+
+      {/* Prompt variable fill modal */}
+      {promptFill && (
+        <PromptFillModal
+          item={promptFill}
+          onDone={() => setPromptFill(null)}
+          accentColor="#E879F9"
+          bgColor="#0E0E18"
+          textColor="#F0F0F0"
+          mutedColor="#888"
+          borderColor="rgba(255,255,255,0.1)"
+        />
+      )}
     </motion.div>
   )
 }

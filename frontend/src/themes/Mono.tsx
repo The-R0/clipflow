@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useClipflow, TYPE_COLOR } from '../hooks/useClipflow'
+import { PromptFillModal } from '../components/PromptFillModal'
 
 const nd = { '--wails-draggable': 'no-drag' } as React.CSSProperties
 const drag = { '--wails-draggable': 'drag' } as React.CSSProperties
@@ -16,9 +17,10 @@ export function MonoTheme({ onSwitch }: { onSwitch: () => void }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const {
     isOpen, search, setSearch, activeCategory, setActiveCategory,
-    filteredData, listIndex, setListIndex, expandedIndex, setExpandedIndex,
+    filteredData, listIndex, setListIndex,
     isRecordingKey, setIsRecordingKey, activationKey, selectItem, hide,
     handleRecordKey, TogglePin, inputRef, isCommandMode,
+    promptFill, setPromptFill,
   } = useClipflow()
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function MonoTheme({ onSwitch }: { onSwitch: () => void }) {
   if (!isOpen) return null
 
   return (
-    <div className="w-full h-full flex flex-col bg-black text-white"
+    <div className="w-full h-full flex flex-col bg-black text-white relative"
          style={{ fontFamily: "'JetBrains Mono','Consolas','Courier New',monospace", border: '1px solid rgba(255,255,255,0.15)' }}>
 
       {/* Title bar */}
@@ -122,10 +124,22 @@ export function MonoTheme({ onSwitch }: { onSwitch: () => void }) {
       {/* Footer */}
       <div className="h-7 border-t border-white/10 px-3 flex items-center gap-3 shrink-0 text-[8px] text-white/15 tracking-widest" style={nd}>
         <span>↵ PASTE</span>
-        <span>→ EXPAND</span>
+        <span>HOVER EXPAND</span>
         <span>ESC HIDE</span>
-        <span className="ml-auto">ALT+P PIN</span>
       </div>
+
+      {/* Prompt variable fill modal */}
+      {promptFill && (
+        <PromptFillModal
+          item={promptFill}
+          onDone={() => setPromptFill(null)}
+          accentColor="#E879F9"
+          bgColor="#0A0A0A"
+          textColor="#F0F0F0"
+          mutedColor="#999"
+          borderColor="#333"
+        />
+      )}
     </div>
   )
 }
