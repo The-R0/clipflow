@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Search, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid, Menu, Star } from 'lucide-react'
-import { useClipflow, TYPE_COLOR } from '../hooks/useClipflow'
+import { useClipflow } from '../hooks/useClipflow'
 import { PromptFillModal } from '../components/PromptFillModal'
 import { WindowSetSize } from '../../wailsjs/runtime/runtime'
 import { TogglePin } from '../../wailsjs/go/main/App'
@@ -223,7 +223,6 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
           const isHovered = hoveredId === item.id
           const isExpanded = isHovered || isActive
           const Icon = TYPE_ICON[item.type] || ChevronRight
-          const dot = TYPE_COLOR[item.type] ?? '#888'
 
           return (
             <div key={item.id}
@@ -243,7 +242,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
 
               {/* Main row */}
               <div className="flex items-center gap-2 min-w-0">
-                <Icon size={13} strokeWidth={1.8} style={{ color: dot, flexShrink: 0, opacity: 0.85 }} />
+                <Icon size={13} strokeWidth={1.8} style={{ color: c.accent, flexShrink: 0 }} />
                 <span className="flex-1 text-[12.5px] truncate" style={{ color: c.text }}>
                   {item.preview}
                 </span>
