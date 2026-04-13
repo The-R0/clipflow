@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Search, Star, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Search, Star, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid, Menu } from 'lucide-react'
 import { useClipflow, TYPE_COLOR } from '../hooks/useClipflow'
 import { PromptFillModal } from '../components/PromptFillModal'
 import { WindowSetSize } from '../../wailsjs/runtime/runtime'
@@ -62,8 +62,9 @@ const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'
 
 /* ═══════════════════════════════════════════════════════════════════ */
 export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('wui-dark') !== 'false')
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [isDark,       setIsDark]       = useState(() => localStorage.getItem('wui-dark') !== 'false')
+  const [hoveredId,    setHoveredId]    = useState<string | null>(null)
+  const [sidebarOpen,  setSidebarOpen]  = useState(false)
   const c = isDark ? DARK : LIGHT
 
   const {
@@ -108,39 +109,41 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
          }}>
 
       {/* ── Title bar / drag handle ──────────────────────────── */}
-      <div className="flex items-center h-9 px-3 shrink-0 select-none" style={{ ...drag, borderBottom: `1px solid ${c.border}` }}>
+      <div className="flex items-center h-9 px-2 shrink-0 select-none gap-1"
+           style={{ ...drag, borderBottom: `1px solid ${c.border}` }}>
+
+        {/* Hamburger — toggles sidebar */}
+        <button onClick={() => setSidebarOpen(p => !p)} style={nd}
+          className="w-7 h-7 rounded flex items-center justify-center transition-colors shrink-0"
+          title="分类">
+          <Menu size={15} strokeWidth={1.8} style={{ color: sidebarOpen ? c.accent : c.textSecondary }} />
+        </button>
+
         {/* App icon + title */}
-        <div className="flex items-center gap-2 mr-auto" style={{ color: c.textSecondary }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="shrink-0">
             <rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent}/>
             <rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
             <rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
             <rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".25"/>
           </svg>
-          <span className="text-[11px] font-semibold tracking-wide" style={{ color: c.text, fontSize: 11 }}>
-            Clipflow
-          </span>
+          <span className="text-[11px] font-semibold" style={{ color: c.text }}>Clipflow</span>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-1" style={nd}>
-          {/* Dark/light toggle */}
+        <div className="flex items-center gap-0.5" style={nd}>
           <button onClick={toggleDark}
-            className="w-6 h-6 rounded flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded flex items-center justify-center transition-colors"
             style={{ color: c.textSecondary }}
-            title={isDark ? '切换浅色' : '切换深色'}>
+            title={isDark ? '浅色' : '深色'}>
             {isDark
               ? <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12A4 4 0 1 0 8 4a4 4 0 0 0 0 8zm0 1.5A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z"/></svg>
               : <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2a5 5 0 0 0 4.33 7.47A5 5 0 1 1 7 2z"/></svg>
             }
           </button>
-          {/* Theme switch */}
           <button onClick={onSwitch}
-            className="w-6 h-6 rounded flex items-center justify-center transition-colors text-[10px] font-semibold"
-            style={{ color: c.textDisabled }}
-            title="切换主题">
-            ⊞
-          </button>
+            className="w-7 h-7 rounded flex items-center justify-center transition-colors text-[11px]"
+            style={{ color: c.textDisabled }} title="切换主题">⊞</button>
         </div>
       </div>
 
@@ -177,28 +180,40 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
         </div>
       </div>
 
-      {/* ── Category pills ───────────────────────────────────── */}
-      <div className="flex gap-1 px-3 py-2 shrink-0 overflow-x-auto scrollbar-none" style={nd}>
-        {CATS.map(({ id, label, Icon }) => {
-          const isActive = activeCategory === id
-          return (
-            <button key={id} onClick={() => setActiveCategory(id)}
-              className="flex items-center gap-1.5 h-6 px-2.5 rounded-full shrink-0 text-[11px] font-medium transition-all"
-              style={{
-                background: isActive ? c.accent : c.surface,
-                color: isActive ? '#fff' : c.textSecondary,
-                border: `1px solid ${isActive ? c.accent : c.border}`,
-                fontSize: 11,
-              }}>
-              <Icon size={11} strokeWidth={isActive ? 2.5 : 2} />
-              {label}
-            </button>
-          )
-        })}
-      </div>
+      {/* ── Body: sidebar + list ─────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden">
 
-      {/* ── List ─────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2 scrollbar-none" style={nd}>
+        {/* Collapsible left sidebar */}
+        <div style={{
+          width: sidebarOpen ? 52 : 0,
+          overflow: 'hidden',
+          transition: 'width 180ms cubic-bezier(.4,0,.2,1)',
+          borderRight: sidebarOpen ? `1px solid ${c.border}` : 'none',
+          flexShrink: 0,
+          ...nd,
+        }}>
+          <div className="flex flex-col items-center py-2 gap-1" style={{ width: 52 }}>
+            {CATS.map(({ id, label, Icon }) => {
+              const isActive = activeCategory === id
+              return (
+                <button key={id}
+                  onClick={() => { setActiveCategory(id); setSidebarOpen(false); inputRef.current?.focus() }}
+                  title={label}
+                  className="w-9 h-9 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all"
+                  style={{
+                    background: isActive ? c.accentBg : 'transparent',
+                    color: isActive ? c.accent : c.textSecondary,
+                  }}>
+                  <Icon size={15} strokeWidth={isActive ? 2.5 : 1.8} />
+                  <span style={{ fontSize: 8, lineHeight: 1 }}>{label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto px-2 pt-2 pb-2 scrollbar-none" style={nd}>
         {filteredData.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 gap-2"
                style={{ color: c.textDisabled }}>
@@ -267,6 +282,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
             </div>
           )
         })}
+      </div>
       </div>
 
       {/* ── Footer ───────────────────────────────────────────── */}
