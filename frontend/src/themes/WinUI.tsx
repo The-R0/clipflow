@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Search, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid, Menu, Star } from 'lucide-react'
 import { useClipflow, TYPE_COLOR } from '../hooks/useClipflow'
 import { PromptFillModal } from '../components/PromptFillModal'
-import { WindowSetSize, WindowSetPosition, WindowGetPosition, WindowGetSize } from '../../wailsjs/runtime/runtime'
+import { WindowSetSize } from '../../wailsjs/runtime/runtime'
 import { TogglePin } from '../../wailsjs/go/main/App'
 
 const SIDEBAR_W = 56
@@ -69,18 +69,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
   const c = isDark ? DARK : LIGHT
 
-  const toggleSidebar = async () => {
-    const next = !sidebarOpen
-    setSidebarOpen(next)
-    const [pos, size] = await Promise.all([WindowGetPosition(), WindowGetSize()])
-    if (next) {
-      WindowSetPosition(pos.x - SIDEBAR_W, pos.y)
-      WindowSetSize(size.w + SIDEBAR_W, size.h)
-    } else {
-      WindowSetPosition(pos.x + SIDEBAR_W, pos.y)
-      WindowSetSize(size.w - SIDEBAR_W, size.h)
-    }
-  }
+  const toggleSidebar = () => setSidebarOpen(p => !p)
 
   const {
     isOpen, search, setSearch, activeCategory, setActiveCategory,
@@ -111,23 +100,28 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
 
   const panelStyle: React.CSSProperties = {
     background: c.bg,
-    backgroundImage: NOISE,
-    backdropFilter: 'blur(60px) saturate(150%)',
-    WebkitBackdropFilter: 'blur(60px) saturate(150%)',
     borderRadius: 8,
     border: `1px solid ${c.border}`,
     boxShadow: c.shadow,
   }
 
   return (
-    /* Outer: transparent flex row — sidebar and main are sibling boxes */
-    <div className="w-full h-full flex flex-row items-stretch gap-1.5"
-         style={{ fontFamily: "'Segoe UI Variable','Segoe UI',system-ui,sans-serif", ...nd }}>
+    <div className="w-full h-full flex flex-col overflow-hidden relative"
+         style={{ fontFamily: "'Segoe UI Variable','Segoe UI',system-ui,sans-serif", ...panelStyle, ...nd }}>
 
-      {/* ── Sidebar: completely separate box ─────────────────── */}
-      {sidebarOpen && (
-        <div style={{ width: SIDEBAR_W, flexShrink: 0, ...panelStyle, ...nd }}>
-          <div className="flex flex-col items-center pt-3 pb-2 gap-0.5 h-full" style={drag}>
+        {/* ── Sidebar: absolute overlay on the LEFT, no window resize ── */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, bottom: 0,
+          width: SIDEBAR_W, zIndex: 30,
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 160ms cubic-bezier(.4,0,.2,1)',
+          background: isDark ? 'rgba(30,30,30,0.98)' : 'rgba(243,243,243,0.98)',
+          borderRight: `1px solid ${c.border}`,
+          borderRadius: '8px 0 0 8px',
+          boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
+          ...nd,
+        }}>
+          <div className="flex flex-col items-center pt-3 pb-2 gap-0.5 h-full">
             {CATS.map(({ id, label, Icon }) => {
               const isActive = activeCategory === id
               return (
@@ -147,10 +141,6 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
             })}
           </div>
         </div>
-      )}
-
-      {/* ── Main panel ───────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-hidden" style={panelStyle}>
 
         {/* Title bar */}
         <div className="flex items-center h-9 px-2 shrink-0 select-none gap-1"
@@ -305,7 +295,6 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
         <span className="text-[10px]" style={{ color: c.textDisabled }}>{activationKey}</span>
 
         </div>
-      </div>{/* end main panel */}
 
       {/* ── Prompt fill modal ────────────────────────────────── */}
       {promptFill && (

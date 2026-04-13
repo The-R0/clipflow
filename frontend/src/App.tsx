@@ -1,16 +1,14 @@
 import { useState } from 'react'
-import { MonoTheme }    from './themes/Mono'
-import { FluidTheme }   from './themes/Fluid'
-import { CrispTheme }   from './themes/Crisp'
-import { ClassicTheme } from './themes/Classic'
-import { WinUITheme }   from './themes/WinUI'
+import { MonoTheme }  from './themes/Mono'
+import { CrispTheme } from './themes/Crisp'
+import { WinUITheme } from './themes/WinUI'
 
-type Theme = 'mono' | 'fluid' | 'crisp' | 'classic' | 'winui'
-const CYCLE: Theme[] = ['mono', 'fluid', 'crisp', 'classic', 'winui']
+type Theme = 'mono' | 'crisp' | 'winui'
+const CYCLE: Theme[] = ['mono', 'crisp', 'winui']
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem('cf-theme') as Theme) || 'crisp'
+    () => (localStorage.getItem('cf-theme') as Theme) || 'winui'
   )
 
   const next = () => {
@@ -21,11 +19,9 @@ export default function App() {
 
   return (
     <div className="w-full h-full bg-transparent">
-      {theme === 'mono'    && <MonoTheme    onSwitch={next} />}
-      {theme === 'fluid'   && <FluidTheme   onSwitch={next} />}
-      {theme === 'crisp'   && <CrispTheme   onSwitch={next} />}
-      {theme === 'classic' && <ClassicTheme onSwitch={next} />}
-      {theme === 'winui'   && <WinUITheme   onSwitch={next} />}
+      {theme === 'mono'  && <MonoTheme  onSwitch={next} />}
+      {theme === 'crisp' && <CrispTheme onSwitch={next} />}
+      {theme === 'winui' && <WinUITheme onSwitch={next} />}
     </div>
   )
 }

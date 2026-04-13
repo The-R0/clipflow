@@ -17,9 +17,9 @@ func main() {
 
 	err := wails.Run(&options.App{
 		Title:             "ClipFlow",
-		Width:             280,
-		Height:            360,
-		MinWidth:          260,
+		Width:             240,
+		Height:            400,
+		MinWidth:          220,
 		MinHeight:         300,
 		MaxWidth:          800,
 		MaxHeight:         800,

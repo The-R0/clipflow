@@ -69,10 +69,10 @@ func (a *App) onBeforeClose(ctx context.Context) bool {
 // ---- 前端绑定方法 ----
 
 func (a *App) ShowPanel() {
-	x, y := a.calcPopupPos(280, 360)
+	x, y := a.calcPopupPos(240, 400)
 	runtime.WindowSetPosition(a.ctx, x, y)
 	runtime.WindowShow(a.ctx)
-	runtime.WindowSetSize(a.ctx, 280, 360)
+	runtime.WindowSetSize(a.ctx, 240, 400)
 	a.panelVisible.Store(true)
 	runtime.EventsEmit(a.ctx, "panel:shown")
 }
