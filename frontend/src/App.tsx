@@ -3,9 +3,10 @@ import { MonoTheme }    from './themes/Mono'
 import { FluidTheme }   from './themes/Fluid'
 import { CrispTheme }   from './themes/Crisp'
 import { ClassicTheme } from './themes/Classic'
+import { WinUITheme }   from './themes/WinUI'
 
-type Theme = 'mono' | 'fluid' | 'crisp' | 'classic'
-const CYCLE: Theme[] = ['mono', 'fluid', 'crisp', 'classic']
+type Theme = 'mono' | 'fluid' | 'crisp' | 'classic' | 'winui'
+const CYCLE: Theme[] = ['mono', 'fluid', 'crisp', 'classic', 'winui']
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>(
@@ -24,6 +25,7 @@ export default function App() {
       {theme === 'fluid'   && <FluidTheme   onSwitch={next} />}
       {theme === 'crisp'   && <CrispTheme   onSwitch={next} />}
       {theme === 'classic' && <ClassicTheme onSwitch={next} />}
+      {theme === 'winui'   && <WinUITheme   onSwitch={next} />}
     </div>
   )
 }
