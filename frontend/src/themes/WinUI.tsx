@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Search, Star, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid, Menu } from 'lucide-react'
+import { Search, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid, Menu, Star } from 'lucide-react'
 import { useClipflow, TYPE_COLOR } from '../hooks/useClipflow'
 import { PromptFillModal } from '../components/PromptFillModal'
-import { WindowSetSize } from '../../wailsjs/runtime/runtime'
+import { WindowSetSize, WindowSetPosition, WindowGetPosition, WindowGetSize } from '../../wailsjs/runtime/runtime'
 import { TogglePin } from '../../wailsjs/go/main/App'
+
+const SIDEBAR_W = 56
 
 const nd = { '--wails-draggable': 'no-drag' } as React.CSSProperties
 const drag = { '--wails-draggable': 'drag' } as React.CSSProperties
@@ -67,6 +69,19 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
   const c = isDark ? DARK : LIGHT
 
+  const toggleSidebar = async () => {
+    const next = !sidebarOpen
+    setSidebarOpen(next)
+    const [pos, size] = await Promise.all([WindowGetPosition(), WindowGetSize()])
+    if (next) {
+      WindowSetPosition(pos.x - SIDEBAR_W, pos.y)
+      WindowSetSize(size.w + SIDEBAR_W, size.h)
+    } else {
+      WindowSetPosition(pos.x + SIDEBAR_W, pos.y)
+      WindowSetSize(size.w - SIDEBAR_W, size.h)
+    }
+  }
+
   const {
     isOpen, search, setSearch, activeCategory, setActiveCategory,
     filteredData, listIndex, setListIndex,
@@ -113,7 +128,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
            style={{ ...drag, borderBottom: `1px solid ${c.border}` }}>
 
         {/* Hamburger — toggles sidebar */}
-        <button onClick={() => setSidebarOpen(p => !p)} style={nd}
+        <button onClick={toggleSidebar} style={nd}
           className="w-7 h-7 rounded flex items-center justify-center transition-colors shrink-0"
           title="分类">
           <Menu size={15} strokeWidth={1.8} style={{ color: sidebarOpen ? c.accent : c.textSecondary }} />
@@ -180,40 +195,46 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
         </div>
       </div>
 
-      {/* ── Body: sidebar + list ─────────────────────────────── */}
+      {/* ── Body: sidebar (flex, expands window left) + list ───── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Collapsible left sidebar */}
+        {/* Left sidebar — width animates, window resizes simultaneously */}
         <div style={{
-          width: sidebarOpen ? 52 : 0,
+          width: sidebarOpen ? SIDEBAR_W : 0,
+          flexShrink: 0,
           overflow: 'hidden',
           transition: 'width 180ms cubic-bezier(.4,0,.2,1)',
           borderRight: sidebarOpen ? `1px solid ${c.border}` : 'none',
-          flexShrink: 0,
           ...nd,
         }}>
-          <div className="flex flex-col items-center py-2 gap-1" style={{ width: 52 }}>
+          <div style={{ width: SIDEBAR_W }} className="flex flex-col items-center py-2.5 gap-0.5 h-full">
             {CATS.map(({ id, label, Icon }) => {
               const isActive = activeCategory === id
               return (
                 <button key={id}
-                  onClick={() => { setActiveCategory(id); setSidebarOpen(false); inputRef.current?.focus() }}
+                  onClick={() => { setActiveCategory(id); toggleSidebar(); inputRef.current?.focus() }}
                   title={label}
-                  className="w-9 h-9 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all"
+                  className="w-10 h-10 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all"
                   style={{
+                    '--wails-draggable': 'no-drag',
                     background: isActive ? c.accentBg : 'transparent',
                     color: isActive ? c.accent : c.textSecondary,
-                  }}>
+                  } as React.CSSProperties}>
                   <Icon size={15} strokeWidth={isActive ? 2.5 : 1.8} />
-                  <span style={{ fontSize: 8, lineHeight: 1 }}>{label}</span>
+                  <span style={{ fontSize: 8, lineHeight: 1.2 }}>{label}</span>
                 </button>
               )
             })}
           </div>
         </div>
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto px-2 pt-2 pb-2 scrollbar-none" style={nd}>
+        {/* List — thin integrated scrollbar */}
+        <div className="flex-1 overflow-y-auto px-2 pt-2 pb-2"
+             style={{
+               ...nd,
+               scrollbarWidth: 'thin',
+               scrollbarColor: `${isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.18)'} transparent`,
+             }}>
         {filteredData.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 gap-2"
                style={{ color: c.textDisabled }}>
