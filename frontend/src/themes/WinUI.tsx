@@ -109,105 +109,25 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
     const n = !isDark; setIsDark(n); localStorage.setItem('wui-dark', String(n))
   }
 
+  const panelStyle: React.CSSProperties = {
+    background: c.bg,
+    backgroundImage: NOISE,
+    backdropFilter: 'blur(60px) saturate(150%)',
+    WebkitBackdropFilter: 'blur(60px) saturate(150%)',
+    borderRadius: 8,
+    border: `1px solid ${c.border}`,
+    boxShadow: c.shadow,
+  }
+
   return (
-    <div className="w-full h-full flex flex-col relative overflow-hidden"
-         style={{
-           fontFamily: "'Segoe UI Variable','Segoe UI',system-ui,sans-serif",
-           background: c.bg,
-           backgroundImage: NOISE,
-           backdropFilter: 'blur(60px) saturate(150%)',
-           WebkitBackdropFilter: 'blur(60px) saturate(150%)',
-           borderRadius: 8,
-           border: `1px solid ${c.border}`,
-           boxShadow: c.shadow,
-           ...nd,
-         }}>
+    /* Outer: transparent flex row — sidebar and main are sibling boxes */
+    <div className="w-full h-full flex flex-row items-stretch gap-1.5"
+         style={{ fontFamily: "'Segoe UI Variable','Segoe UI',system-ui,sans-serif", ...nd }}>
 
-      {/* ── Title bar / drag handle ──────────────────────────── */}
-      <div className="flex items-center h-9 px-2 shrink-0 select-none gap-1"
-           style={{ ...drag, borderBottom: `1px solid ${c.border}` }}>
-
-        {/* Hamburger — toggles sidebar */}
-        <button onClick={toggleSidebar} style={nd}
-          className="w-7 h-7 rounded flex items-center justify-center transition-colors shrink-0"
-          title="分类">
-          <Menu size={15} strokeWidth={1.8} style={{ color: sidebarOpen ? c.accent : c.textSecondary }} />
-        </button>
-
-        {/* App icon + title */}
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="shrink-0">
-            <rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent}/>
-            <rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
-            <rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
-            <rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".25"/>
-          </svg>
-          <span className="text-[11px] font-semibold" style={{ color: c.text }}>Clipflow</span>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-0.5" style={nd}>
-          <button onClick={toggleDark}
-            className="w-7 h-7 rounded flex items-center justify-center transition-colors"
-            style={{ color: c.textSecondary }}
-            title={isDark ? '浅色' : '深色'}>
-            {isDark
-              ? <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12A4 4 0 1 0 8 4a4 4 0 0 0 0 8zm0 1.5A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z"/></svg>
-              : <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2a5 5 0 0 0 4.33 7.47A5 5 0 1 1 7 2z"/></svg>
-            }
-          </button>
-          <button onClick={onSwitch}
-            className="w-7 h-7 rounded flex items-center justify-center transition-colors text-[11px]"
-            style={{ color: c.textDisabled }} title="切换主题">⊞</button>
-        </div>
-      </div>
-
-      {/* ── Search bar ───────────────────────────────────────── */}
-      <div className="px-3 pt-2.5 pb-0 shrink-0" style={nd}>
-        <div className="flex items-center gap-2 h-8 px-2.5 rounded-md transition-all"
-             style={{
-               background: c.surface,
-               border: `1px solid ${c.border}`,
-               outline: 'none',
-             }}>
-          <Search size={13} style={{ color: c.textDisabled, flexShrink: 0 }} />
-          {isRecordingKey ? (
-            <span className="flex-1 text-[12px] animate-pulse" style={{ color: c.accent }}>
-              按下快捷键… Esc 取消
-            </span>
-          ) : (
-            <input ref={inputRef} value={search} onChange={e => setSearch(e.target.value)}
-              onKeyDown={handleRecordKey}
-              placeholder={isCommandMode ? '输入指令…' : '搜索剪贴板…'}
-              className="flex-1 bg-transparent outline-none text-[12px]"
-              style={{ color: c.text, caretColor: c.accent }}
-              spellCheck={false} autoComplete="off" />
-          )}
-          {search && (
-            <button onClick={() => setSearch('')}
-              className="shrink-0 rounded transition-colors"
-              style={{ color: c.textDisabled }}>
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
-                <path d="M6 5.293 10.146 1.147a.5.5 0 0 1 .707.707L6.707 6l4.146 4.146a.5.5 0 0 1-.707.707L6 6.707l-4.146 4.146a.5.5 0 0 1-.707-.707L5.293 6 1.147 1.854A.5.5 0 0 1 1.854 1.147L6 5.293z"/>
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── Body: sidebar (flex, expands window left) + list ───── */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* Left sidebar — width animates, window resizes simultaneously */}
-        <div style={{
-          width: sidebarOpen ? SIDEBAR_W : 0,
-          flexShrink: 0,
-          overflow: 'hidden',
-          transition: 'width 180ms cubic-bezier(.4,0,.2,1)',
-          borderRight: sidebarOpen ? `1px solid ${c.border}` : 'none',
-          ...nd,
-        }}>
-          <div style={{ width: SIDEBAR_W }} className="flex flex-col items-center py-2.5 gap-0.5 h-full">
+      {/* ── Sidebar: completely separate box ─────────────────── */}
+      {sidebarOpen && (
+        <div style={{ width: SIDEBAR_W, flexShrink: 0, ...panelStyle, ...nd }}>
+          <div className="flex flex-col items-center pt-3 pb-2 gap-0.5 h-full" style={drag}>
             {CATS.map(({ id, label, Icon }) => {
               const isActive = activeCategory === id
               return (
@@ -227,8 +147,71 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
             })}
           </div>
         </div>
+      )}
 
-        {/* List — thin integrated scrollbar */}
+      {/* ── Main panel ───────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col overflow-hidden" style={panelStyle}>
+
+        {/* Title bar */}
+        <div className="flex items-center h-9 px-2 shrink-0 select-none gap-1"
+             style={{ ...drag, borderBottom: `1px solid ${c.border}` }}>
+          <button onClick={toggleSidebar} style={nd}
+            className="w-7 h-7 rounded flex items-center justify-center transition-colors shrink-0"
+            title="分类">
+            <Menu size={15} strokeWidth={1.8} style={{ color: sidebarOpen ? c.accent : c.textSecondary }} />
+          </button>
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="shrink-0">
+              <rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent}/>
+              <rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
+              <rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
+              <rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".25"/>
+            </svg>
+            <span className="text-[11px] font-semibold" style={{ color: c.text }}>Clipflow</span>
+          </div>
+          <div className="flex items-center gap-0.5" style={nd}>
+            <button onClick={toggleDark}
+              className="w-7 h-7 rounded flex items-center justify-center transition-colors"
+              style={{ color: c.textSecondary }} title={isDark ? '浅色' : '深色'}>
+              {isDark
+                ? <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12A4 4 0 1 0 8 4a4 4 0 0 0 0 8zm0 1.5A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z"/></svg>
+                : <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2a5 5 0 0 0 4.33 7.47A5 5 0 1 1 7 2z"/></svg>
+              }
+            </button>
+            <button onClick={onSwitch}
+              className="w-7 h-7 rounded flex items-center justify-center text-[11px]"
+              style={{ color: c.textDisabled }} title="切换主题">⊞</button>
+          </div>
+        </div>
+
+        {/* Search bar */}
+        <div className="px-3 pt-2.5 pb-0 shrink-0" style={nd}>
+          <div className="flex items-center gap-2 h-8 px-2.5 rounded-md"
+               style={{ background: c.surface, border: `1px solid ${c.border}` }}>
+            <Search size={13} style={{ color: c.textDisabled, flexShrink: 0 }} />
+            {isRecordingKey ? (
+              <span className="flex-1 text-[12px] animate-pulse" style={{ color: c.accent }}>
+                按下快捷键… Esc 取消
+              </span>
+            ) : (
+              <input ref={inputRef} value={search} onChange={e => setSearch(e.target.value)}
+                onKeyDown={handleRecordKey}
+                placeholder={isCommandMode ? '输入指令…' : '搜索剪贴板…'}
+                className="flex-1 bg-transparent outline-none text-[12px]"
+                style={{ color: c.text, caretColor: c.accent }}
+                spellCheck={false} autoComplete="off" />
+            )}
+            {search && (
+              <button onClick={() => setSearch('')} style={{ color: c.textDisabled }}>
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
+                  <path d="M6 5.293 10.146 1.147a.5.5 0 0 1 .707.707L6.707 6l4.146 4.146a.5.5 0 0 1-.707.707L6 6.707l-4.146 4.146a.5.5 0 0 1-.707-.707L5.293 6 1.147 1.854A.5.5 0 0 1 1.854 1.147L6 5.293z"/>
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* List */}
         <div className="flex-1 overflow-y-auto px-2 pt-2 pb-2"
              style={{
                ...nd,
@@ -304,10 +287,9 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
           )
         })}
       </div>
-      </div>
 
-      {/* ── Footer ───────────────────────────────────────────── */}
-      <div className="h-7 px-3 flex items-center justify-between shrink-0 select-none"
+        {/* ── Footer */}
+        <div className="h-7 px-3 flex items-center justify-between shrink-0 select-none"
            style={{ borderTop: `1px solid ${c.border}`, ...nd }}>
         <div className="flex items-center gap-3">
           {[['↵', '粘贴'], ['Esc', '隐藏']].map(([key, label]) => (
@@ -322,21 +304,8 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
         </div>
         <span className="text-[10px]" style={{ color: c.textDisabled }}>{activationKey}</span>
 
-        {/* Resize grip */}
-        <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
-          onMouseDown={e => {
-            e.preventDefault()
-            const sx = e.screenX, sy = e.screenY, sw = window.outerWidth, sh = window.outerHeight
-            const onMove = (mv: MouseEvent) => WindowSetSize(Math.max(260, sw + mv.screenX - sx), Math.max(300, sh + mv.screenY - sy))
-            const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
-            window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp)
-          }}>
-          <svg width="7" height="7" viewBox="0 0 8 8" className="absolute bottom-1 right-1"
-               style={{ color: DARK.textDisabled }}>
-            <path d="M7 1L1 7M7 4L4 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-          </svg>
         </div>
-      </div>
+      </div>{/* end main panel */}
 
       {/* ── Prompt fill modal ────────────────────────────────── */}
       {promptFill && (
