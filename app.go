@@ -55,6 +55,10 @@ func (a *App) startup(ctx context.Context) {
 	go a.clipmon.Start()
 
 	SkipTaskbar()
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		RemoveWindowShadow()
+	}()
 
 	// Show panel briefly on startup so user knows the app is alive
 	a.ShowPanel()

@@ -97,7 +97,6 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
 
   const panelStyle: React.CSSProperties = {
     background: c.bg,
-    borderRadius: 8,
     boxShadow: 'none',
   }
 
@@ -113,7 +112,6 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
           transition: 'transform 160ms cubic-bezier(.4,0,.2,1)',
           background: c.bg,
           borderRight: `1px solid ${c.border}`,
-          borderRadius: '12px 0 0 12px',
           boxShadow: 'none',
           ...nd,
         }}>
