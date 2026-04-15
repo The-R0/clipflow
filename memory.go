@@ -2,6 +2,7 @@ package main
 
 import (
 	"syscall"
+	"time"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -32,7 +33,7 @@ func SkipTaskbar() {
 		setWindowPos.Call(hwnd, 0, 0, 0, 0, 0, SWP_HIDEWINDOW|SWP_NOMOVE|SWP_NOSIZE)
 	}
 
-	hwnd2 := findWindowByPID()
+	hwnd2 := findOurWindow()
 	if hwnd2 != 0 {
 		const SWP_HIDEWINDOW = 0x0080
 		const SWP_NOMOVE = 0x0002
@@ -80,49 +81,20 @@ func ActivateExistingWindow() {
 	}
 }
 
-// findWindowByPID finds the main window belonging to the current process
-func findWindowByPID() uintptr {
+// findOurWindow retries FindWindowW until the Wails window is found (up to 5s)
+func findOurWindow() uintptr {
 	user32 := windows.NewLazyDLL("user32.dll")
-	kernel32 := windows.NewLazyDLL("kernel32.dll")
-
-	getCurrentProcessId := kernel32.NewProc("GetCurrentProcessId")
-	enumWindows := user32.NewProc("EnumWindows")
-	getWindowThreadProcessId := user32.NewProc("GetWindowThreadProcessIdW")
-	isWindowVisible := user32.NewProc("IsWindowVisible")
-	getWindowTextLen := user32.NewProc("GetWindowTextLengthW")
-
-	pid, _, _ := getCurrentProcessId.Call()
-
-	var foundHwnd uintptr
-
-	type enumData struct {
-		pid  uint32
-		hwnd *uintptr
+	findWindow := user32.NewProc("FindWindowW")
+	className, _ := windows.UTF16PtrFromString("")
+	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
+	for i := 0; i < 50; i++ {
+		hwnd, _, _ := findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+		if hwnd != 0 {
+			return hwnd
+		}
+		time.Sleep(100 * time.Millisecond)
 	}
-	data := enumData{pid: uint32(pid), hwnd: &foundHwnd}
-
-	// WNDENUMPROC callback
-	cb := windows.NewCallback(func(hwnd uintptr, lparam uintptr) uintptr {
-		d := (*enumData)(unsafe.Pointer(lparam))
-		var procId uint32
-		getWindowThreadProcessId.Call(hwnd, uintptr(unsafe.Pointer(&procId)))
-		if procId != d.pid {
-			return 1 // continue
-		}
-		vis, _, _ := isWindowVisible.Call(hwnd)
-		if vis == 0 {
-			return 1
-		}
-		textLen, _, _ := getWindowTextLen.Call(hwnd)
-		if textLen > 0 {
-			*d.hwnd = hwnd
-			return 0 // found, stop
-		}
-		return 1
-	})
-
-	enumWindows.Call(cb, uintptr(unsafe.Pointer(&data)))
-	return foundHwnd
+	return 0
 }
 
 // MakeWindowToolWindow removes the window from taskbar by setting WS_EX_TOOLWINDOW
@@ -132,7 +104,7 @@ func MakeWindowToolWindow() {
 	setWindowLong := user32.NewProc("SetWindowLongPtrW")
 	setWindowPos := user32.NewProc("SetWindowPos")
 
-	hwnd := findWindowByPID()
+	hwnd := findOurWindow()
 	if hwnd == 0 {
 		return
 	}
@@ -167,7 +139,7 @@ func AddTrayIcon() {
 	// Load default application icon
 	icon, _, _ := loadIcon.Call(hInstance, uintptr(unsafe.Pointer(uintptr(32512)))) // IDI_APPLICATION
 
-	trayWnd = findWindowByPID()
+	trayWnd = findOurWindow()
 	if trayWnd == 0 {
 		return
 	}
@@ -249,7 +221,7 @@ func RemoveWindowShadow() {
 
 	dwmSetWindowAttribute := dwmapi.NewProc("DwmSetWindowAttribute")
 
-	hwnd := findWindowByPID()
+	hwnd := findOurWindow()
 	if hwnd == 0 {
 		return
 	}
