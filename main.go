@@ -15,6 +15,12 @@ var assets embed.FS
 func main() {
 	app := NewApp()
 
+	if !EnsureSingleInstance() {
+		// Already running — find and show the existing window
+		ActivateExistingWindow()
+		return
+	}
+
 	err := wails.Run(&options.App{
 		Title:             "ClipFlow",
 		Width:             240,

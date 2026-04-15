@@ -57,6 +57,32 @@ func EnsureConsoleHidden() {
 	}
 }
 
+func EnsureSingleInstance() bool {
+	kernel32 := windows.NewLazyDLL("kernel32.dll")
+	createMutex := kernel32.NewProc("CreateMutexW")
+
+	name, _ := windows.UTF16PtrFromString("ClipFlow_SingleInstance")
+	createMutex.Call(0, 0, uintptr(unsafe.Pointer(name)))
+
+	lastErr := windows.GetLastError()
+	return lastErr != windows.ERROR_ALREADY_EXISTS
+}
+
+func ActivateExistingWindow() {
+	user32 := windows.NewLazyDLL("user32.dll")
+	findWindow := user32.NewProc("FindWindowW")
+	setForegroundWindow := user32.NewProc("SetForegroundWindow")
+	showWindow := user32.NewProc("ShowWindow")
+
+	className, _ := windows.UTF16PtrFromString("")
+	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
+	hwnd, _, _ := findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+	if hwnd != 0 {
+		showWindow.Call(hwnd, 9) // SW_RESTORE
+		setForegroundWindow.Call(hwnd)
+	}
+}
+
 func RemoveWindowShadow() {
 	user32 := windows.NewLazyDLL("user32.dll")
 	dwmapi := windows.NewLazyDLL("dwmapi.dll")
