@@ -58,6 +58,8 @@ func (a *App) startup(ctx context.Context) {
 	go func() {
 		time.Sleep(200 * time.Millisecond)
 		RemoveWindowShadow()
+		MakeWindowToolWindow()
+		AddTrayIcon()
 	}()
 
 	// Show panel briefly on startup so user knows the app is alive
