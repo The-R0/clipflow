@@ -73,8 +73,7 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
       style={{
         fontFamily: "'Microsoft YaHei','Inter','Segoe UI Variable',system-ui,sans-serif",
         background: c.bg,
-        borderRadius: 12,
-        border: `1px solid ${c.border}`,
+        borderRadius: 8,
         boxShadow: 'none',
         ...nd,
       }}>

@@ -24,7 +24,7 @@ func main() {
 		MaxWidth:          800,
 		MaxHeight:         800,
 		AssetServer:       &assetserver.Options{Assets: assets},
-		BackgroundColour:  &options.RGBA{R: 0, G: 0, B: 0, A: 0},
+		BackgroundColour:  &options.RGBA{R: 32, G: 32, B: 32, A: 255},
 		OnStartup:         app.startup,
 		OnBeforeClose:     app.onBeforeClose,
 		Frameless:         true,
@@ -32,8 +32,8 @@ func main() {
 		HideWindowOnClose: true,
 		AlwaysOnTop:       true,
 		Windows: &windows.Options{
-			WebviewIsTransparent: true,
-			WindowIsTranslucent:  true,
+			WebviewIsTransparent: false,
+			WindowIsTranslucent:  false,
 		},
 		Bind: []interface{}{
 			app,

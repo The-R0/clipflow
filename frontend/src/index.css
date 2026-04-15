@@ -9,7 +9,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100vh;
-  background: transparent;
+  background: #202020;
   color: #ededed;
   font-family: var(--font-sans);
   overflow: hidden;
@@ -17,7 +17,7 @@ html, body {
 
 #root {
   height: 100vh;
-  background: transparent;
+  background: #202020;
 }
 
 @layer utilities {

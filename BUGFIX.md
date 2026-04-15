@@ -18,8 +18,8 @@
 ### BUG-001: 窗口圆角处露出黑边
 - **日期**: 2026-04-14
 - **现象**: 面板设置了 borderRadius:12，但圆角外侧露出窗口底色（纯黑），形成明显黑边
-- **原因**: `main.go` 中 `BackgroundColour` 设为纯黑 `(0,0,0,255)`，面板背景是半透明深灰，圆角处窗口底色与面板色不匹配。即使改成匹配色，浅色模式下仍会露底
-- **修复**: `main.go` 启用窗口透明：`WebviewIsTransparent: true` + `WindowIsTranslucent: true`，`BackgroundColour` 设为 `(0,0,0,0)` 全透明，html/body/#root 已是 `background: transparent`，面板自身带背景色，圆角外自然透明无黑边
+- **原因**: `main.go` 中 `BackgroundColour` 设为纯黑 `(0,0,0,255)`，面板背景是半透明深灰，圆角处窗口底色与面板色不匹配
+- **修复**: 关闭窗口透明（`wails dev` 下不稳定），改用 `BackgroundColour` 匹配暗色底 `(32,32,32,255)`，CSS `html/body/#root` 也设 `#202020`，面板去掉 border 只保留 `borderRadius:8` + `overflow:hidden` 裁切圆角
 - **状态**: ✅ 已修复
 
 ### BUG-002: 收藏功能不完善
