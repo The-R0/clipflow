@@ -131,12 +131,22 @@ func AddTrayIcon() {
 	shell32 := windows.NewLazyDLL("shell32.dll")
 
 	getModuleHandle := kernel32.NewProc("GetModuleHandleW")
-	loadIcon := user32.NewProc("LoadIconW")
+	loadImage := user32.NewProc("LoadImageW")
 	shellNotifyIcon := shell32.NewProc("Shell_NotifyIconW")
 
 	hInstance, _, _ := getModuleHandle.Call(0)
-	// Load default application icon
-	icon, _, _ := loadIcon.Call(hInstance, uintptr(unsafe.Pointer(uintptr(32512)))) // IDI_APPLICATION
+
+	// Load the exe's own icon resource (Wails embeds icon.ico as resource ID 1)
+	const IMAGE_ICON = 1
+	const LR_SHARED = 0x00008000
+	icon, _, _ := loadImage.Call(hInstance, uintptr(1), IMAGE_ICON,
+		16, 16, LR_SHARED) // 16x16 for tray
+
+	if icon == 0 {
+		// Fallback: try IDI_APPLICATION
+		loadIcon := user32.NewProc("LoadIconW")
+		icon, _, _ = loadIcon.Call(hInstance, uintptr(unsafe.Pointer(uintptr(32512))))
+	}
 
 	trayWnd = findOurWindow()
 	if trayWnd == 0 {
