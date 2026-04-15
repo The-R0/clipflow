@@ -32,10 +32,7 @@ func SkipTaskbar() {
 		setWindowPos.Call(hwnd, 0, 0, 0, 0, 0, SWP_HIDEWINDOW|SWP_NOMOVE|SWP_NOSIZE)
 	}
 
-	findWindow := user32.NewProc("FindWindowW")
-	className, _ := windows.UTF16PtrFromString("")
-	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
-	hwnd2, _, _ := findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+	hwnd2 := findWindowByPID()
 	if hwnd2 != 0 {
 		const SWP_HIDEWINDOW = 0x0080
 		const SWP_NOMOVE = 0x0002
@@ -83,17 +80,59 @@ func ActivateExistingWindow() {
 	}
 }
 
+// findWindowByPID finds the main window belonging to the current process
+func findWindowByPID() uintptr {
+	user32 := windows.NewLazyDLL("user32.dll")
+	kernel32 := windows.NewLazyDLL("kernel32.dll")
+
+	getCurrentProcessId := kernel32.NewProc("GetCurrentProcessId")
+	enumWindows := user32.NewProc("EnumWindows")
+	getWindowThreadProcessId := user32.NewProc("GetWindowThreadProcessIdW")
+	isWindowVisible := user32.NewProc("IsWindowVisible")
+	getWindowTextLen := user32.NewProc("GetWindowTextLengthW")
+
+	pid, _, _ := getCurrentProcessId.Call()
+
+	var foundHwnd uintptr
+
+	type enumData struct {
+		pid  uint32
+		hwnd *uintptr
+	}
+	data := enumData{pid: uint32(pid), hwnd: &foundHwnd}
+
+	// WNDENUMPROC callback
+	cb := windows.NewCallback(func(hwnd uintptr, lparam uintptr) uintptr {
+		d := (*enumData)(unsafe.Pointer(lparam))
+		var procId uint32
+		getWindowThreadProcessId.Call(hwnd, uintptr(unsafe.Pointer(&procId)))
+		if procId != d.pid {
+			return 1 // continue
+		}
+		vis, _, _ := isWindowVisible.Call(hwnd)
+		if vis == 0 {
+			return 1
+		}
+		textLen, _, _ := getWindowTextLen.Call(hwnd)
+		if textLen > 0 {
+			*d.hwnd = hwnd
+			return 0 // found, stop
+		}
+		return 1
+	})
+
+	enumWindows.Call(cb, uintptr(unsafe.Pointer(&data)))
+	return foundHwnd
+}
+
 // MakeWindowToolWindow removes the window from taskbar by setting WS_EX_TOOLWINDOW
 func MakeWindowToolWindow() {
 	user32 := windows.NewLazyDLL("user32.dll")
-	findWindow := user32.NewProc("FindWindowW")
 	getWindowLong := user32.NewProc("GetWindowLongPtrW")
 	setWindowLong := user32.NewProc("SetWindowLongPtrW")
 	setWindowPos := user32.NewProc("SetWindowPos")
 
-	className, _ := windows.UTF16PtrFromString("")
-	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
-	hwnd, _, _ := findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+	hwnd := findWindowByPID()
 	if hwnd == 0 {
 		return
 	}
@@ -128,11 +167,10 @@ func AddTrayIcon() {
 	// Load default application icon
 	icon, _, _ := loadIcon.Call(hInstance, uintptr(unsafe.Pointer(uintptr(32512)))) // IDI_APPLICATION
 
-	// Find our window
-	findWindow := user32.NewProc("FindWindowW")
-	className, _ := windows.UTF16PtrFromString("")
-	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
-	trayWnd, _, _ = findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+	trayWnd = findWindowByPID()
+	if trayWnd == 0 {
+		return
+	}
 
 	type NOTIFYICONDATA struct {
 		CbSize           uint32
@@ -209,12 +247,9 @@ func RemoveWindowShadow() {
 	user32 := windows.NewLazyDLL("user32.dll")
 	dwmapi := windows.NewLazyDLL("dwmapi.dll")
 
-	findWindow := user32.NewProc("FindWindowW")
 	dwmSetWindowAttribute := dwmapi.NewProc("DwmSetWindowAttribute")
 
-	className, _ := windows.UTF16PtrFromString("")
-	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
-	hwnd, _, _ := findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+	hwnd := findWindowByPID()
 	if hwnd == 0 {
 		return
 	}
