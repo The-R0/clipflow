@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function ClearUnpinned():Promise<void>;
 
+export function DeleteItem(arg1:string):Promise<void>;
+
 export function GetActivationKey():Promise<string>;
 
 export function GetClipData():Promise<Array<main.ClipItem>>;

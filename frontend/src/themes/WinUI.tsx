@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Search, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid, Menu, Star } from 'lucide-react'
+import { Search, Pin, ChevronRight, Type, Link, Code2, Image, Zap, Sparkles, LayoutGrid, Menu, Star, X } from 'lucide-react'
 import { useClipflow } from '../hooks/useClipflow'
 import { PromptFillModal } from '../components/PromptFillModal'
-import { WindowSetSize } from '../../wailsjs/runtime/runtime'
 import { TogglePin } from '../../wailsjs/go/main/App'
 
 const SIDEBAR_W = 56
@@ -19,30 +18,30 @@ type Scheme = {
 }
 
 const DARK: Scheme = {
-  bg:            'rgba(28, 28, 28, 0.90)',
-  surface:       'rgba(255,255,255,0.04)',
-  surfaceHover:  'rgba(255,255,255,0.08)',
-  border:        'rgba(255,255,255,0.083)',
-  text:          'rgba(255,255,255,0.886)',
-  textSecondary: 'rgba(255,255,255,0.544)',
-  textDisabled:  'rgba(255,255,255,0.36)',
-  accent:        '#0078D4',
-  accentHover:   '#1084D8',
-  accentBg:      'rgba(0,120,212,0.15)',
-  shadow:        '0 16px 48px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3)',
+  bg:            'rgba(40, 40, 40, 0.96)',
+  surface:       'rgba(255,255,255,0.045)',
+  surfaceHover:  'rgba(255,255,255,0.075)',
+  border:        'rgba(255,255,255,0.08)',
+  text:          'rgba(255,255,255,0.89)',
+  textSecondary: 'rgba(255,255,255,0.56)',
+  textDisabled:  'rgba(255,255,255,0.35)',
+  accent:        '#76B9ED',
+  accentHover:   '#87C4F0',
+  accentBg:      'rgba(118,185,237,0.14)',
+  shadow:        'none',
 }
 const LIGHT: Scheme = {
-  bg:            'rgba(243,243,243,0.88)',
-  surface:       'rgba(0,0,0,0.03)',
-  surfaceHover:  'rgba(0,0,0,0.055)',
-  border:        'rgba(0,0,0,0.073)',
+  bg:            'rgba(241,245,250,0.95)',
+  surface:       'rgba(255,255,255,0.58)',
+  surfaceHover:  'rgba(255,255,255,0.85)',
+  border:        'rgba(58,78,103,0.18)',
   text:          'rgba(0,0,0,0.89)',
-  textSecondary: 'rgba(0,0,0,0.55)',
+  textSecondary: 'rgba(0,0,0,0.62)',
   textDisabled:  'rgba(0,0,0,0.36)',
-  accent:        '#0067C0',
-  accentHover:   '#006CBB',
-  accentBg:      'rgba(0,103,192,0.10)',
-  shadow:        '0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)',
+  accent:        '#0F6CBD',
+  accentHover:   '#175EA6',
+  accentBg:      'rgba(15,108,189,0.12)',
+  shadow:        'none',
 }
 
 /* ── Category config ─────────────────────────────────────────────── */
@@ -59,9 +58,6 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   TEXT: Type, LINK: Link, CODE: Code2, IMG: Image, CMD: Zap, ACTION: Zap, PROMPT: Sparkles,
 }
 
-/* ── Mica noise overlay (inline SVG data URI) ────────────────────── */
-const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`
-
 /* ═══════════════════════════════════════════════════════════════════ */
 export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
   const [isDark,       setIsDark]       = useState(() => localStorage.getItem('wui-dark') !== 'false')
@@ -77,6 +73,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
     isRecordingKey, activationKey, selectItem, hide,
     handleRecordKey, inputRef, isCommandMode,
     promptFill, setPromptFill,
+    DeleteItem,
   } = useClipflow()
 
   useEffect(() => {
@@ -100,14 +97,14 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
 
   const panelStyle: React.CSSProperties = {
     background: c.bg,
-    borderRadius: 8,
+    borderRadius: 12,
     border: `1px solid ${c.border}`,
-    boxShadow: c.shadow,
+    boxShadow: 'none',
   }
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden relative"
-         style={{ fontFamily: "'Segoe UI Variable','Segoe UI',system-ui,sans-serif", ...panelStyle, ...nd }}>
+         style={{ fontFamily: "'Microsoft YaHei','Inter','Segoe UI Variable','Segoe UI',system-ui,sans-serif", ...panelStyle, ...nd }}>
 
         {/* ── Sidebar: absolute overlay on the LEFT, no window resize ── */}
         <div style={{
@@ -115,10 +112,10 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
           width: SIDEBAR_W, zIndex: 30,
           transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 160ms cubic-bezier(.4,0,.2,1)',
-          background: isDark ? 'rgba(30,30,30,0.98)' : 'rgba(243,243,243,0.98)',
+          background: c.bg,
           borderRight: `1px solid ${c.border}`,
-          borderRadius: '8px 0 0 8px',
-          boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
+          borderRadius: '12px 0 0 12px',
+          boxShadow: 'none',
           ...nd,
         }}>
           <div className="flex flex-col items-center pt-3 pb-2 gap-0.5 h-full">
@@ -128,7 +125,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
                 <button key={id}
                   onClick={() => { setActiveCategory(id); toggleSidebar(); inputRef.current?.focus() }}
                   title={label}
-                  className="w-10 h-10 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all"
+                  className="w-10 h-10 rounded-md flex flex-col items-center justify-center gap-0.5 transition-all"
                   style={{
                     '--wails-draggable': 'no-drag',
                     background: isActive ? c.accentBg : 'transparent',
@@ -151,13 +148,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
             <Menu size={15} strokeWidth={1.8} style={{ color: sidebarOpen ? c.accent : c.textSecondary }} />
           </button>
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="shrink-0">
-              <rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent}/>
-              <rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
-              <rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".5"/>
-              <rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill={c.accent} opacity=".25"/>
-            </svg>
-            <span className="text-[11px] font-semibold" style={{ color: c.text }}>Clipflow</span>
+            <span className="text-[11.5px] font-medium" style={{ color: c.text }}>Clipflow</span>
           </div>
           <div className="flex items-center gap-0.5" style={nd}>
             <button onClick={toggleDark}
@@ -202,11 +193,9 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto px-2 pt-2 pb-2"
+        <div className="flex-1 overflow-y-auto px-1.5 pt-1.5 pb-1.5 scrollbar-hover"
              style={{
                ...nd,
-               scrollbarWidth: 'thin',
-               scrollbarColor: `${isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.18)'} transparent`,
              }}>
         {filteredData.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 gap-2"
@@ -232,17 +221,17 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
               className="flex flex-col rounded-md cursor-pointer select-none mb-0.5 overflow-hidden"
               style={{
                 background: isActive ? c.accentBg : isHovered ? c.surfaceHover : 'transparent',
-                borderLeft: isActive ? `3px solid ${c.accent}` : '3px solid transparent',
+                border: `1px solid ${isActive ? c.accent : 'transparent'}`,
                 transition: 'background 120ms ease, border-color 120ms ease',
-                paddingLeft: isActive ? 5 : 8,
+                paddingLeft: 8,
                 paddingRight: 8,
-                paddingTop: 7,
-                paddingBottom: 7,
+                paddingTop: 6,
+                paddingBottom: 6,
               }}>
 
               {/* Main row */}
               <div className="flex items-center gap-2 min-w-0">
-                <Icon size={13} strokeWidth={1.8} style={{ color: c.accent, flexShrink: 0 }} />
+                <Icon size={13} strokeWidth={1.8} style={{ color: isActive ? c.accent : c.textSecondary, flexShrink: 0 }} />
                 <span className="flex-1 text-[12.5px] truncate" style={{ color: c.text }}>
                   {item.preview}
                 </span>
@@ -251,11 +240,18 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
                     {item.createdAt}
                   </span>
                 )}
-                {item.pinned && (
+                {(item.pinned || isHovered) && (
                   <button onClick={e => { e.stopPropagation(); TogglePin(item.id) }}
                     className="shrink-0 transition-transform hover:scale-110"
-                    style={{ color: c.accent }}>
-                    <Pin size={11} fill="currentColor" strokeWidth={0} />
+                    style={{ color: item.pinned ? '#FACC15' : c.textDisabled }}>
+                    <Star size={11} fill={item.pinned ? "currentColor" : "none"} strokeWidth={item.pinned ? 0 : 1.8} />
+                  </button>
+                )}
+                {isHovered && (
+                  <button onClick={e => { e.stopPropagation(); DeleteItem(item.id) }}
+                    className="shrink-0 transition-transform hover:scale-110"
+                    style={{ color: c.textDisabled }}>
+                    <X size={11} strokeWidth={1.8} />
                   </button>
                 )}
               </div>
@@ -269,7 +265,12 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
               }}>
                 <div className="mt-1.5 ml-5 text-[10.5px] leading-relaxed line-clamp-3"
                      style={{ color: c.textSecondary, fontFamily: item.type === 'CODE' ? "'Cascadia Code','Consolas',monospace" : 'inherit' }}>
-                  {item.details}
+                  {item.type === 'TEXT' && /^#([0-9A-Fa-f]{3}){1,2}$/.test(item.content.trim()) ? (
+                    <div className="flex items-center gap-2">
+                      <div style={{ width: 24, height: 24, borderRadius: 4, backgroundColor: item.content.trim(), border: `1px solid ${c.border}`, flexShrink: 0 }} />
+                      <span>{item.content.trim()}</span>
+                    </div>
+                  ) : item.details}
                 </div>
               </div>
             </div>
@@ -278,12 +279,12 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
       </div>
 
         {/* ── Footer */}
-        <div className="h-7 px-3 flex items-center justify-between shrink-0 select-none"
+        <div className="h-5 px-2 flex items-center justify-between shrink-0 select-none"
            style={{ borderTop: `1px solid ${c.border}`, ...nd }}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {[['↵', '粘贴'], ['Esc', '隐藏']].map(([key, label]) => (
-            <span key={key} className="flex items-center gap-1 text-[10px]" style={{ color: c.textDisabled }}>
-              <kbd className="px-1 py-px rounded text-[9px] font-sans"
+            <span key={key} className="flex items-center gap-0.5 text-[8px]" style={{ color: c.textDisabled }}>
+              <kbd className="px-0.5 rounded text-[7px]"
                    style={{ background: c.surface, border: `1px solid ${c.border}`, color: c.textSecondary }}>
                 {key}
               </kbd>
@@ -291,7 +292,7 @@ export function WinUITheme({ onSwitch }: { onSwitch: () => void }) {
             </span>
           ))}
         </div>
-        <span className="text-[10px]" style={{ color: c.textDisabled }}>{activationKey}</span>
+        <span className="text-[8px]" style={{ color: c.textDisabled }}>{activationKey}</span>
 
         </div>
 

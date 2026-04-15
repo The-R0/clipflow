@@ -6,6 +6,10 @@ export function ClearUnpinned() {
   return window['go']['main']['App']['ClearUnpinned']();
 }
 
+export function DeleteItem(arg1) {
+  return window['go']['main']['App']['DeleteItem'](arg1);
+}
+
 export function GetActivationKey() {
   return window['go']['main']['App']['GetActivationKey']();
 }

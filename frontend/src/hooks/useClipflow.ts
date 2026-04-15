@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { EventsOn } from '../../wailsjs/runtime/runtime'
 import {
   GetClipData, GetActivationKey, HidePanel, PasteText,
-  TogglePin, ClearUnpinned, ReregisterHotkey,
+  TogglePin, ClearUnpinned, ReregisterHotkey, DeleteItem,
 } from '../../wailsjs/go/main/App'
 
 export type ClipItem = {
@@ -144,5 +144,6 @@ export function useClipflow() {
     hide,
     handleRecordKey,
     TogglePin,
+    DeleteItem,
   }
 }

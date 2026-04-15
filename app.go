@@ -138,6 +138,19 @@ func (a *App) SavePrompt(content string) {
 	runtime.EventsEmit(a.ctx, "clipboard:updated")
 }
 
+func (a *App) DeleteItem(id string) {
+	a.mu.Lock()
+	for i, it := range a.items {
+		if it.ID == id {
+			a.items = append(a.items[:i], a.items[i+1:]...)
+			break
+		}
+	}
+	a.mu.Unlock()
+	a.saveItems()
+	runtime.EventsEmit(a.ctx, "clipboard:updated")
+}
+
 func (a *App) TogglePin(id string) {
 	a.mu.Lock()
 	for i := range a.items {

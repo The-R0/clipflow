@@ -1,39 +1,61 @@
-import React, { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Star } from 'lucide-react'
+﻿import React, { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import { Star, Pin, Search, Type, Link, Code2, Sparkles, LayoutGrid, Zap, ChevronRight, Image, X } from 'lucide-react'
 import { useClipflow, TYPE_COLOR } from '../hooks/useClipflow'
 import { PromptFillModal } from '../components/PromptFillModal'
-
-const CAT_ICONS = [
-  { id: 'all',    label: 'All',    shape: <svg width="13" height="13" viewBox="0 0 12 12"><circle cx="3" cy="3" r="1.4" fill="currentColor"/><circle cx="9" cy="3" r="1.4" fill="currentColor"/><circle cx="3" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/></svg> },
-  { id: 'text',   label: 'Text',   shape: <svg width="13" height="13" viewBox="0 0 12 12"><rect x="1" y="2" width="10" height="1.5" rx="0.75" fill="currentColor"/><rect x="1" y="5.25" width="6.5" height="1.5" rx="0.75" fill="currentColor"/><rect x="1" y="8.5" width="8" height="1.5" rx="0.75" fill="currentColor"/></svg> },
-  { id: 'link',   label: 'Link',   shape: <svg width="13" height="13" viewBox="0 0 12 12"><circle cx="3.5" cy="6" r="2.2" stroke="currentColor" strokeWidth="1.4" fill="none"/><circle cx="8.5" cy="6" r="2.2" stroke="currentColor" strokeWidth="1.4" fill="none"/><line x1="5.7" y1="6" x2="6.3" y2="6" stroke="currentColor" strokeWidth="1.4"/></svg> },
-  { id: 'code',   label: 'Code',   shape: <svg width="13" height="13" viewBox="0 0 12 12"><polyline points="4.5,3 1.5,6 4.5,9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><polyline points="7.5,3 10.5,6 7.5,9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-  { id: 'prompt', label: 'Prompt', shape: <svg width="13" height="13" viewBox="0 0 12 12"><polygon points="6,1 7.2,4.5 11,4.5 8,6.8 9.2,10.5 6,8.2 2.8,10.5 4,6.8 1,4.5 4.8,4.5" fill="currentColor"/></svg> },
-  { id: 'pinned', label: 'Pinned', shape: <svg width="13" height="13" viewBox="0 0 12 12"><path d="M6 1 L7.5 4.5 L11 5 L8.5 7.5 L9 11 L6 9.2 L3 11 L3.5 7.5 L1 5 L4.5 4.5 Z" fill="currentColor" opacity="0.7"/></svg> },
-]
+import { TogglePin } from '../../wailsjs/go/main/App'
 
 const nd = { '--wails-draggable': 'no-drag' } as React.CSSProperties
 const drag = { '--wails-draggable': 'drag' } as React.CSSProperties
 
+type Scheme = { bg: string; surface: string; surfaceHover: string; border: string; text: string; textSecondary: string; textDisabled: string; accent: string; accentBg: string }
+
+const DARK: Scheme = {
+  bg: 'rgba(28,28,30,0.92)', surface: 'rgba(255,255,255,0.06)', surfaceHover: 'rgba(255,255,255,0.10)',
+  border: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.82)', textSecondary: 'rgba(255,255,255,0.48)',
+  textDisabled: 'rgba(255,255,255,0.28)', accent: '#6EA8FE', accentBg: 'rgba(110,168,254,0.14)',
+}
+const LIGHT: Scheme = {
+  bg: 'rgba(246,246,246,0.92)', surface: 'rgba(0,0,0,0.04)', surfaceHover: 'rgba(0,0,0,0.07)',
+  border: 'rgba(0,0,0,0.09)', text: 'rgba(0,0,0,0.82)', textSecondary: 'rgba(0,0,0,0.48)',
+  textDisabled: 'rgba(0,0,0,0.28)', accent: '#0A84FF', accentBg: 'rgba(10,132,255,0.10)',
+}
+
+const CATS = [
+  { id: 'all', label: '全部', Icon: LayoutGrid },
+  { id: 'text', label: '文本', Icon: Type },
+  { id: 'link', label: '链接', Icon: Link },
+  { id: 'code', label: '代码', Icon: Code2 },
+  { id: 'prompt', label: 'Prompt', Icon: Sparkles },
+  { id: 'pinned', label: '收藏', Icon: Star },
+]
+const TYPE_ICON: Record<string, React.ElementType> = {
+  TEXT: Type, LINK: Link, CODE: Code2, IMG: Image, CMD: Zap, ACTION: Zap, PROMPT: Sparkles,
+}
+
 export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('fluid-dark') !== 'false')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const c = isDark ? DARK : LIGHT
+  const toggleDark = () => { const n = !isDark; setIsDark(n); localStorage.setItem('fluid-dark', String(n)) }
+
   const {
     isOpen, search, setSearch, activeCategory, setActiveCategory,
     filteredData, listIndex, setListIndex,
     isRecordingKey, activationKey, selectItem, hide,
-    handleRecordKey, TogglePin, inputRef, isCommandMode,
+    handleRecordKey, inputRef, isCommandMode,
     promptFill, setPromptFill,
+    DeleteItem,
   } = useClipflow()
 
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e: KeyboardEvent) => {
       const len = filteredData.length || 1
-      if (e.key === 'Escape')    { hide(); return }
+      if (e.key === 'Escape') { hide(); return }
       if (e.key === 'ArrowDown') { e.preventDefault(); setListIndex(p => (p + 1) % len) }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); setListIndex(p => (p - 1 + len) % len) }
-      if (e.key === 'Enter')     { e.preventDefault(); filteredData[listIndex] && selectItem(filteredData[listIndex]) }
+      if (e.key === 'ArrowUp') { e.preventDefault(); setListIndex(p => (p - 1 + len) % len) }
+      if (e.key === 'Enter') { e.preventDefault(); filteredData[listIndex] && selectItem(filteredData[listIndex]) }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -47,122 +69,155 @@ export function FluidTheme({ onSwitch }: { onSwitch: () => void }) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97, y: 6 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className="w-full h-full flex flex-col"
+      className="w-full h-full flex flex-col overflow-hidden"
       style={{
-        fontFamily: "'Segoe UI Variable','Segoe UI',system-ui,sans-serif",
-        background: 'linear-gradient(160deg, rgba(14,14,24,0.98) 0%, rgba(20,14,36,0.98) 100%)',
+        fontFamily: "'Microsoft YaHei','Inter','Segoe UI Variable',system-ui,sans-serif",
+        background: c.bg,
         borderRadius: 12,
-        border: '1px solid rgba(255,255,255,0.08)',
-        boxShadow: '0 32px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.06)',
-        overflow: 'hidden',
+        border: `1px solid ${c.border}`,
+        boxShadow: 'none',
         ...nd,
       }}>
 
-      {/* Drag bar */}
-      <div className="h-8 flex items-center justify-between px-4 shrink-0" style={drag}>
-        <span className="text-[10px] text-white/20 tracking-[0.2em] font-medium">CLIPFLOW</span>
-        <button style={nd} onClick={onSwitch}
-          className="px-2 py-0.5 rounded text-[9px] text-white/30 hover:text-white/70 bg-white/5 hover:bg-white/15 transition-all tracking-widest">
-          THEME
-        </button>
+      {/* Title bar */}
+      <div className="flex items-center h-8 px-3 shrink-0 select-none" style={{ ...drag, borderBottom: `1px solid ${c.border}` }}>
+        <span className="text-[11px] font-medium flex-1" style={{ color: c.text }}>Clipflow</span>
+        <div className="flex items-center gap-0.5" style={nd}>
+          <button onClick={toggleDark} className="w-6 h-6 rounded flex items-center justify-center transition-colors"
+            style={{ color: c.textSecondary }} title={isDark ? '浅色' : '深色'}>
+            {isDark
+              ? <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12A4 4 0 1 0 8 4a4 4 0 0 0 0 8zm0 1.5A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z"/></svg>
+              : <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2a5 5 0 0 0 4.33 7.47A5 5 0 1 1 7 2z"/></svg>
+            }
+          </button>
+          <button onClick={onSwitch} className="w-6 h-6 rounded flex items-center justify-center text-[10px]"
+            style={{ color: c.textDisabled }} title="切换主题">⊞</button>
+        </div>
       </div>
 
       {/* Search bar */}
-      <div className="px-3 shrink-0" style={nd}>
-        <div className="flex items-center gap-2 rounded-lg px-3 h-9"
-             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <span className="text-white/25 text-sm">⌕</span>
+      <div className="px-3 pt-2 pb-0 shrink-0" style={nd}>
+        <div className="flex items-center gap-2 h-7 px-2.5 rounded-lg"
+             style={{ background: c.surface, border: `1px solid ${c.border}` }}>
+          <Search size={12} style={{ color: c.textDisabled, flexShrink: 0 }} />
           {isRecordingKey ? (
-            <span className="flex-1 text-[11px] text-cyan-400/70 animate-pulse">Press combo — Esc to cancel</span>
+            <span className="flex-1 text-[11px] animate-pulse" style={{ color: c.accent }}>按下快捷键… Esc 取消</span>
           ) : (
             <input ref={inputRef} value={search} onChange={e => setSearch(e.target.value)}
               onKeyDown={handleRecordKey}
-              placeholder={isCommandMode ? 'Command mode...' : 'Search...'}
-              className="flex-1 bg-transparent outline-none text-[12px] text-white/80 placeholder:text-white/20" />
+              placeholder={isCommandMode ? '输入指令…' : '搜索剪贴板…'}
+              className="flex-1 bg-transparent outline-none text-[11.5px]"
+              style={{ color: c.text, caretColor: c.accent }}
+              spellCheck={false} autoComplete="off" />
+          )}
+          {search && (
+            <button onClick={() => setSearch('')} style={{ color: c.textDisabled }}>
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor">
+                <path d="M6 5.293 10.146 1.147a.5.5 0 0 1 .707.707L6.707 6l4.146 4.146a.5.5 0 0 1-.707.707L6 6.707l-4.146 4.146a.5.5 0 0 1-.707-.707L5.293 6 1.147 1.854A.5.5 0 0 1 1.854 1.147L6 5.293z"/>
+              </svg>
+            </button>
           )}
         </div>
       </div>
 
       {/* Category icons */}
-      <div className="flex gap-1 px-3 mt-2.5 shrink-0" style={nd}>
-        {CAT_ICONS.map(c => (
-          <button key={c.id} onClick={() => setActiveCategory(c.id)}
-            title={c.label}
-            className={`w-8 h-7 flex items-center justify-center rounded-md transition-all ${
-              activeCategory === c.id ? 'text-white' : 'text-white/25 hover:text-white/55'
-            }`}
-            style={activeCategory === c.id ? {
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.15)',
-            } : { border: '1px solid transparent' }}>
-            {c.shape}
+      <div className="flex gap-1 px-3 mt-2 shrink-0" style={nd}>
+        {CATS.map(({ id, label, Icon }) => (
+          <button key={id} onClick={() => setActiveCategory(id)} title={label}
+            className="w-8 h-7 flex items-center justify-center rounded-md transition-all"
+            style={activeCategory === id ? {
+              background: c.accentBg, color: c.accent, border: `1px solid ${c.border}`,
+            } : { color: c.textSecondary, border: '1px solid transparent' }}>
+            <Icon size={13} strokeWidth={activeCategory === id ? 2.2 : 1.6} />
           </button>
         ))}
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto mt-2 px-2 pb-2 space-y-1 scrollbar-none" style={nd}>
-        <AnimatePresence initial={false}>
-          {filteredData.map((item, i) => {
-            const isActive = i === listIndex
-            const color = TYPE_COLOR[item.type] ?? '#888'
-            const isHovered = hoveredId === item.id
-            return (
-              <div key={item.id}
-                onClick={() => selectItem(item)}
-                onMouseEnter={() => { setHoveredId(item.id); setListIndex(i) }}
-                onMouseLeave={() => setHoveredId(null)}
-                className="px-3 py-2.5 rounded-xl cursor-pointer transition-all select-none"
-                style={{
-                  background: isActive ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.025)',
-                  border: isActive ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.04)',
-                  boxShadow: isActive ? '0 2px 16px rgba(0,0,0,0.3)' : 'none',
-                }}>
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-[3px] h-3.5 rounded-full shrink-0" style={{ background: color, opacity: 0.8 }} />
-                  <span className="text-[12px] text-white/80 truncate">{item.preview}</span>
-                  <span className="ml-auto text-[8px] text-white/15 shrink-0 tabular-nums">{item.createdAt}</span>
-                  {item.pinned && (
-                    <Star size={8} className="shrink-0 fill-amber-400 text-amber-400" />
-                  )}
-                </div>
-                <div className="mt-0.5 ml-[11px] flex items-center gap-1.5">
-                  <span className="text-[9px] uppercase tracking-wider" style={{ color: color + 'AA' }}>
-                    {item.type}
-                  </span>
-                </div>
-                {isHovered && item.details && (
-                  <div className="mt-2 ml-[11px] text-[10px] text-white/30 whitespace-pre-wrap line-clamp-3 leading-relaxed">
-                    {item.details}
-                  </div>
+      <div className="flex-1 overflow-y-auto mt-1.5 px-1.5 pb-1.5 scrollbar-hover" style={nd}>
+        {filteredData.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-10 gap-2" style={{ color: c.textDisabled }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span className="text-[10px]">{isCommandMode ? '未知指令' : '无内容'}</span>
+          </div>
+        )}
+        {filteredData.map((item, i) => {
+          const isActive = i === listIndex
+          const isHovered = hoveredId === item.id
+          const isExpanded = isHovered || isActive
+          const color = TYPE_COLOR[item.type] ?? '#888'
+          const Icon = TYPE_ICON[item.type] || ChevronRight
+          return (
+            <div key={item.id}
+              onClick={() => selectItem(item)}
+              onMouseEnter={() => { setHoveredId(item.id); setListIndex(i) }}
+              onMouseLeave={() => setHoveredId(null)}
+              className="px-3 py-2 rounded-lg cursor-pointer transition-all select-none mb-0.5"
+              style={{
+                background: isActive ? c.accentBg : isHovered ? c.surfaceHover : 'transparent',
+                border: `1px solid ${isActive ? c.accent : 'transparent'}`,
+              }}>
+              <div className="flex items-center gap-2 min-w-0">
+                <Icon size={12} strokeWidth={1.8} style={{ color: isActive ? c.accent : c.textSecondary, flexShrink: 0 }} />
+                <span className="flex-1 text-[12px] truncate" style={{ color: c.text }}>{item.preview}</span>
+                {item.createdAt && (
+                  <span className="text-[9px] tabular-nums shrink-0" style={{ color: c.textDisabled }}>{item.createdAt}</span>
+                )}
+                {(item.pinned || isHovered) && (
+                  <button onClick={e => { e.stopPropagation(); TogglePin(item.id) }}
+                    className="shrink-0" style={{ color: item.pinned ? '#FACC15' : c.textDisabled }}>
+                    <Star size={10} fill={item.pinned ? "currentColor" : "none"} strokeWidth={item.pinned ? 0 : 1.8} />
+                  </button>
+                )}
+                {isHovered && (
+                  <button onClick={e => { e.stopPropagation(); DeleteItem(item.id) }}
+                    className="shrink-0" style={{ color: c.textDisabled }}>
+                    <X size={10} strokeWidth={1.8} />
+                  </button>
                 )}
               </div>
-            )
-          })}
-        </AnimatePresence>
-        {filteredData.length === 0 && (
-          <div className="py-10 text-center text-[11px] text-white/15">Nothing here</div>
-        )}
+              <div style={{
+                maxHeight: isExpanded && item.details ? 60 : 0,
+                overflow: 'hidden', transition: 'max-height 150ms ease',
+                opacity: isExpanded && item.details ? 1 : 0,
+              }}>
+                <div className="mt-1 ml-4 text-[10px] leading-relaxed line-clamp-3"
+                     style={{ color: c.textSecondary, fontFamily: item.type === 'CODE' ? "'Cascadia Code','Consolas',monospace" : 'inherit' }}>
+                  {item.type === 'TEXT' && /^#([0-9A-Fa-f]{3}){1,2}$/.test(item.content.trim()) ? (
+                    <div className="flex items-center gap-2">
+                      <div style={{ width: 20, height: 20, borderRadius: 4, backgroundColor: item.content.trim(), border: `1px solid ${c.border}`, flexShrink: 0 }} />
+                      <span>{item.content.trim()}</span>
+                    </div>
+                  ) : item.details}
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Footer */}
-      <div className="h-8 border-t px-4 flex items-center justify-between shrink-0 text-[9px] text-white/18"
-           style={{ borderColor: 'rgba(255,255,255,0.05)', ...nd }}>
-        <span>↵ paste · hover expand · esc hide</span>
-        <span>{activationKey}</span>
+      <div className="h-5 px-3 flex items-center justify-between shrink-0 select-none"
+           style={{ borderTop: `1px solid ${c.border}`, ...nd }}>
+        <div className="flex items-center gap-2">
+          {[['↵', '粘贴'], ['Esc', '隐藏']].map(([key, label]) => (
+            <span key={key} className="flex items-center gap-0.5 text-[8px]" style={{ color: c.textDisabled }}>
+              <kbd className="px-0.5 rounded text-[7px]"
+                   style={{ background: c.surface, border: `1px solid ${c.border}`, color: c.textSecondary }}>{key}</kbd>
+              {label}
+            </span>
+          ))}
+        </div>
+        <span className="text-[8px]" style={{ color: c.textDisabled }}>{activationKey}</span>
       </div>
 
-      {/* Prompt variable fill modal */}
+      {/* Prompt fill modal */}
       {promptFill && (
-        <PromptFillModal
-          item={promptFill}
-          onDone={() => setPromptFill(null)}
-          accentColor="#E879F9"
-          bgColor="#0E0E18"
-          textColor="#F0F0F0"
-          mutedColor="#888"
-          borderColor="rgba(255,255,255,0.1)"
-        />
+        <PromptFillModal item={promptFill} onDone={() => setPromptFill(null)}
+          accentColor={c.accent} bgColor={isDark ? '#1C1C1E' : '#F2F2F7'}
+          textColor={c.text} mutedColor={c.textSecondary} borderColor={c.border} />
       )}
     </motion.div>
   )

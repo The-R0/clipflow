@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { MonoTheme }  from './themes/Mono'
-import { CrispTheme } from './themes/Crisp'
 import { WinUITheme } from './themes/WinUI'
+import { FluidTheme } from './themes/Fluid'
 
-type Theme = 'mono' | 'crisp' | 'winui'
-const CYCLE: Theme[] = ['mono', 'crisp', 'winui']
+type Theme = 'winui' | 'fluid'
+const CYCLE: Theme[] = ['winui', 'fluid']
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -20,9 +19,8 @@ export default function App() {
 
   return (
     <div className="w-full h-full bg-transparent">
-      {theme === 'mono'  && <MonoTheme  onSwitch={next} />}
-      {theme === 'crisp' && <CrispTheme onSwitch={next} />}
       {theme === 'winui' && <WinUITheme onSwitch={next} />}
+      {theme === 'fluid' && <FluidTheme onSwitch={next} />}
     </div>
   )
 }
