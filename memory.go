@@ -72,9 +72,8 @@ func ActivateExistingWindow() {
 	setForegroundWindow := user32.NewProc("SetForegroundWindow")
 	showWindow := user32.NewProc("ShowWindow")
 
-	className, _ := windows.UTF16PtrFromString("")
 	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
-	hwnd, _, _ := findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+	hwnd, _, _ := findWindow.Call(0, uintptr(unsafe.Pointer(windowName)))
 	if hwnd != 0 {
 		showWindow.Call(hwnd, 9) // SW_RESTORE
 		setForegroundWindow.Call(hwnd)
@@ -85,10 +84,10 @@ func ActivateExistingWindow() {
 func findOurWindow() uintptr {
 	user32 := windows.NewLazyDLL("user32.dll")
 	findWindow := user32.NewProc("FindWindowW")
-	className, _ := windows.UTF16PtrFromString("")
 	windowName, _ := windows.UTF16PtrFromString("ClipFlow")
 	for i := 0; i < 50; i++ {
-		hwnd, _, _ := findWindow.Call(uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(windowName)))
+		// Pass 0 (NULL) for className to match ALL window classes
+		hwnd, _, _ := findWindow.Call(0, uintptr(unsafe.Pointer(windowName)))
 		if hwnd != 0 {
 			return hwnd
 		}
